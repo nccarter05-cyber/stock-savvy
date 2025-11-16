@@ -41,6 +41,9 @@ const Inventory = () => {
                 <TableHead>Par Level</TableHead>
                 <TableHead>Cost/Unit</TableHead>
                 <TableHead>Total Value</TableHead>
+                <TableHead>Last Shipment</TableHead>
+                <TableHead>Qty Received</TableHead>
+                <TableHead>Supplier</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -62,6 +65,9 @@ const Inventory = () => {
                   <TableCell>{item.parLevel}</TableCell>
                   <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
                   <TableCell>${(item.quantity * item.costPerUnit).toFixed(2)}</TableCell>
+                  <TableCell>{new Date(item.lastShipmentDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{item.lastShipmentQuantity} {item.unit}</TableCell>
+                  <TableCell>{item.supplier}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="icon">
