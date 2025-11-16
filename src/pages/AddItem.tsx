@@ -82,6 +82,23 @@ const AddItem = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="supplier">Supplier</Label>
+                <Input id="supplier" placeholder="Enter supplier name" required />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lastShipmentDate">Last Shipment Date</Label>
+                  <Input id="lastShipmentDate" type="date" required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lastShipmentQuantity">Quantity Received</Label>
+                  <Input id="lastShipmentQuantity" type="number" step="0.01" placeholder="0" required />
+                </div>
+              </div>
+
               <div className="flex gap-4 pt-4">
                 <Button type="submit" className="flex-1">Save Item</Button>
                 <Button type="button" variant="outline" onClick={() => navigate('/inventory')}>
