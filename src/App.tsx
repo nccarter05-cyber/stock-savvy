@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import AddItem from "./pages/AddItem";
+import BulkAdd from "./pages/BulkAdd";
 import LowStock from "./pages/LowStock";
 import NotFound from "./pages/NotFound";
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/add-item" element={<AddItem />} />
+          <Route path="/bulk-add" element={<BulkAdd />} />
           <Route path="/low-stock" element={<LowStock />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
