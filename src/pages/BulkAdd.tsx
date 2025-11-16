@@ -20,6 +20,7 @@ const BulkAdd = () => {
     quantity: '',
     unit: '',
     parLevel: '',
+    lowStockThreshold: '',
     costPerUnit: '',
     lastShipmentDate: '',
     lastShipmentQuantity: '',
@@ -28,8 +29,8 @@ const BulkAdd = () => {
 
   const handleAddItem = () => {
     if (!currentItem.name || !currentItem.category || !currentItem.quantity || !currentItem.unit || 
-        !currentItem.parLevel || !currentItem.costPerUnit || !currentItem.lastShipmentDate || 
-        !currentItem.lastShipmentQuantity || !currentItem.supplier) {
+        !currentItem.parLevel || !currentItem.lowStockThreshold || !currentItem.costPerUnit || 
+        !currentItem.lastShipmentDate || !currentItem.lastShipmentQuantity || !currentItem.supplier) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -41,6 +42,7 @@ const BulkAdd = () => {
       quantity: parseFloat(currentItem.quantity),
       unit: currentItem.unit as InventoryItem['unit'],
       parLevel: parseFloat(currentItem.parLevel),
+      lowStockThreshold: parseFloat(currentItem.lowStockThreshold),
       costPerUnit: parseFloat(currentItem.costPerUnit),
       lastShipmentDate: currentItem.lastShipmentDate,
       lastShipmentQuantity: parseFloat(currentItem.lastShipmentQuantity),
@@ -54,6 +56,7 @@ const BulkAdd = () => {
       quantity: '',
       unit: '',
       parLevel: '',
+      lowStockThreshold: '',
       costPerUnit: '',
       lastShipmentDate: '',
       lastShipmentQuantity: '',
@@ -167,16 +170,28 @@ const BulkAdd = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cost">Cost Per Unit</Label>
+                <Label htmlFor="lowStockThreshold">Low Stock Alert Level</Label>
                 <Input 
-                  id="cost" 
+                  id="lowStockThreshold" 
                   type="number" 
                   step="0.01" 
-                  placeholder="0.00" 
-                  value={currentItem.costPerUnit}
-                  onChange={(e) => setCurrentItem({ ...currentItem, costPerUnit: e.target.value })}
+                  placeholder="0" 
+                  value={currentItem.lowStockThreshold}
+                  onChange={(e) => setCurrentItem({ ...currentItem, lowStockThreshold: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cost">Cost Per Unit</Label>
+              <Input 
+                id="cost" 
+                type="number" 
+                step="0.01" 
+                placeholder="0.00" 
+                value={currentItem.costPerUnit}
+                onChange={(e) => setCurrentItem({ ...currentItem, costPerUnit: e.target.value })}
+              />
             </div>
 
             <div className="space-y-2">

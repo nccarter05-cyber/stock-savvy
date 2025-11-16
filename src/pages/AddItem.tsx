@@ -77,9 +77,14 @@ const AddItem = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cost">Cost Per Unit</Label>
-                  <Input id="cost" type="number" step="0.01" placeholder="0.00" required />
+                  <Label htmlFor="lowStockThreshold">Low Stock Alert Level</Label>
+                  <Input id="lowStockThreshold" type="number" step="0.01" placeholder="0" required />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cost">Cost Per Unit</Label>
+                <Input id="cost" type="number" step="0.01" placeholder="0.00" required />
               </div>
 
               <div className="space-y-2">

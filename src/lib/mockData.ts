@@ -5,6 +5,7 @@ export interface InventoryItem {
   quantity: number;
   unit: 'lb' | 'oz' | 'case' | 'each' | 'gallon';
   parLevel: number;
+  lowStockThreshold: number;
   costPerUnit: number;
   lastShipmentDate: string;
   lastShipmentQuantity: number;
@@ -19,6 +20,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 15,
     unit: 'each',
     parLevel: 20,
+    lowStockThreshold: 10,
     costPerUnit: 2.50,
     lastShipmentDate: '2025-11-10',
     lastShipmentQuantity: 30,
@@ -31,6 +33,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 30,
     unit: 'lb',
     parLevel: 50,
+    lowStockThreshold: 25,
     costPerUnit: 4.99,
     lastShipmentDate: '2025-11-12',
     lastShipmentQuantity: 50,
@@ -43,6 +46,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 8,
     unit: 'gallon',
     parLevel: 10,
+    lowStockThreshold: 5,
     costPerUnit: 3.99,
     lastShipmentDate: '2025-11-14',
     lastShipmentQuantity: 15,
@@ -55,6 +59,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 45,
     unit: 'lb',
     parLevel: 40,
+    lowStockThreshold: 20,
     costPerUnit: 0.89,
     lastShipmentDate: '2025-11-08',
     lastShipmentQuantity: 100,
@@ -67,6 +72,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 12,
     unit: 'lb',
     parLevel: 25,
+    lowStockThreshold: 10,
     costPerUnit: 1.99,
     lastShipmentDate: '2025-11-13',
     lastShipmentQuantity: 40,
@@ -79,6 +85,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 18,
     unit: 'lb',
     parLevel: 30,
+    lowStockThreshold: 15,
     costPerUnit: 5.49,
     lastShipmentDate: '2025-11-11',
     lastShipmentQuantity: 35,
@@ -91,6 +98,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 8,
     unit: 'lb',
     parLevel: 15,
+    lowStockThreshold: 7,
     costPerUnit: 6.99,
     lastShipmentDate: '2025-11-09',
     lastShipmentQuantity: 20,
@@ -103,6 +111,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 22,
     unit: 'gallon',
     parLevel: 20,
+    lowStockThreshold: 10,
     costPerUnit: 24.99,
     lastShipmentDate: '2025-11-07',
     lastShipmentQuantity: 30,
@@ -115,6 +124,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 5,
     unit: 'gallon',
     parLevel: 12,
+    lowStockThreshold: 6,
     costPerUnit: 7.99,
     lastShipmentDate: '2025-11-15',
     lastShipmentQuantity: 18,
@@ -127,6 +137,7 @@ export const mockInventory: InventoryItem[] = [
     quantity: 10,
     unit: 'lb',
     parLevel: 15,
+    lowStockThreshold: 8,
     costPerUnit: 12.99,
     lastShipmentDate: '2025-11-06',
     lastShipmentQuantity: 25,
@@ -139,5 +150,5 @@ export const calculateTotalValue = (items: InventoryItem[]) => {
 };
 
 export const getLowStockItems = (items: InventoryItem[]) => {
-  return items.filter(item => item.quantity <= item.parLevel);
+  return items.filter(item => item.quantity <= item.lowStockThreshold);
 };
