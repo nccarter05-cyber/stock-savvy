@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Package, Home, AlertTriangle, Plus } from 'lucide-react';
+import { Package, Home, AlertTriangle, Plus, ListPlus } from 'lucide-react';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -11,6 +11,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/inventory', icon: Package, label: 'Inventory' },
     { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/add-item', icon: Plus, label: 'Add Item' },
+    { path: '/bulk-add', icon: ListPlus, label: 'Bulk Add' },
   ];
 
   return (
