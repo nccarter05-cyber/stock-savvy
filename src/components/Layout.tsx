@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Package, Home, AlertTriangle, Plus, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Package, Home, AlertTriangle, Plus } from 'lucide-react';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -17,17 +16,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-2">
             <Package className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">RestaurantStock</h1>
           </div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/login">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Link>
-          </Button>
         </div>
       </header>
       
