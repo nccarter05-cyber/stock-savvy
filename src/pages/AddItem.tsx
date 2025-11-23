@@ -57,7 +57,7 @@ const AddItem = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Item Name</Label>
-                <Input id="inventory_name" placeholder="Enter item name" required />
+                <Input id="name" name="name" placeholder="Enter item name" required />
               </div>
 
               <div className="space-y-2">
@@ -79,7 +79,7 @@ const AddItem = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantity</Label>
-                  <Input id="quantity" type="number" step="0.01" placeholder="0" required />
+                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" required />
                 </div>
 
                 <div className="space-y-2">
@@ -102,34 +102,34 @@ const AddItem = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="parLevel">Par Level</Label>
-                  <Input id="parLevel" type="number" step="0.01" placeholder="0" required />
+                  <Input id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="lowStockThreshold">Low Stock Alert Level</Label>
-                  <Input id="lowStockThreshold" type="number" step="0.01" placeholder="0" required />
+                  <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" required />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="cost">Cost Per Unit</Label>
-                <Input id="cost" type="number" step="0.01" placeholder="0.00" required />
+                <Input id="cost" name="cost" type="number" step="0.01" placeholder="0.00" required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input id="supplier" placeholder="Enter supplier name" required />
+                <Input id="supplier" name="supplier" placeholder="Enter supplier name" required />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentDate">Last Shipment Date</Label>
-                  <Input id="lastShipmentDate" type="date" required />
+                  <Input id="lastShipmentDate" name="lastShipmentDate" type="date" required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentQuantity">Quantity Received</Label>
-                  <Input id="lastShipmentQuantity" type="number" step="0.01" placeholder="0" required />
+                  <Input id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0" required />
                 </div>
               </div>
 
