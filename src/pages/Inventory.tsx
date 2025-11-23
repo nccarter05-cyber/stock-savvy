@@ -52,11 +52,11 @@ const Inventory = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Quantity</TableHead>
+                  <TableHead>Adjust Qty</TableHead>
                   <TableHead>Unit</TableHead>
                   <TableHead>Max Level</TableHead>
                   <TableHead>Cost/Unit</TableHead>
                   <TableHead>Total Value</TableHead>
-                  <TableHead>Adjust Qty</TableHead>
                   <TableHead>Last Shipment</TableHead>
                   <TableHead>Qty Received</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -87,10 +87,6 @@ const Inventory = () => {
                           {quantity}
                         </span>
                       </TableCell>
-                      <TableCell>{item.unit || '-'}</TableCell>
-                      <TableCell>{item.inventory_maximum || '-'}</TableCell>
-                      <TableCell>${costPerUnit.toFixed(2)}</TableCell>
-                      <TableCell>${totalValue.toFixed(2)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button
@@ -111,6 +107,10 @@ const Inventory = () => {
                           </Button>
                         </div>
                       </TableCell>
+                      <TableCell>{item.unit || '-'}</TableCell>
+                      <TableCell>{item.inventory_maximum || '-'}</TableCell>
+                      <TableCell>${costPerUnit.toFixed(2)}</TableCell>
+                      <TableCell>${totalValue.toFixed(2)}</TableCell>
                       <TableCell>
                         {item.last_shipment_date 
                           ? new Date(item.last_shipment_date).toLocaleDateString()
