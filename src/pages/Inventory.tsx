@@ -2,13 +2,13 @@ import Layout from '@/components/Layout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { items, isLoading, deleteItem } = useInventory();
+  const { items, isLoading, deleteItem, updateQuantity } = useInventory();
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -56,6 +56,7 @@ const Inventory = () => {
                   <TableHead>Max Level</TableHead>
                   <TableHead>Cost/Unit</TableHead>
                   <TableHead>Total Value</TableHead>
+                  <TableHead>Adjust Qty</TableHead>
                   <TableHead>Last Shipment</TableHead>
                   <TableHead>Qty Received</TableHead>
                   <TableHead>Supplier</TableHead>
@@ -90,6 +91,26 @@ const Inventory = () => {
                       <TableCell>{item.inventory_maximum || '-'}</TableCell>
                       <TableCell>${costPerUnit.toFixed(2)}</TableCell>
                       <TableCell>${totalValue.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => updateQuantity({ itemId: item.id, delta: -1 })}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => updateQuantity({ itemId: item.id, delta: 1 })}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {item.last_shipment_date 
                           ? new Date(item.last_shipment_date).toLocaleDateString()
