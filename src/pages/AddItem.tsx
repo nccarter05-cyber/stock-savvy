@@ -1,42 +1,42 @@
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useNavigate } from 'react-router-dom';
-import { useInventory } from '@/hooks/useInventory';
-import { useState } from 'react';
+import Layout from "@/components/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
+import { useInventory } from "@/hooks/useInventory";
+import { useState } from "react";
 
 const AddItem = () => {
   const navigate = useNavigate();
   const { addItem } = useInventory();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [category, setCategory] = useState('');
-  const [unit, setUnit] = useState('');
+  const [category, setCategory] = useState("");
+  const [unit, setUnit] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     const formData = new FormData(e.currentTarget);
-    
+
     const newItem = {
-      inventory_name: formData.get('name') as string,
+      inventory_name: formData.get("name") as string,
       category: category,
       unit: unit,
-      cost_per_unit: parseFloat(formData.get('cost') as string),
-      last_shipment_date: formData.get('lastShipmentDate') as string,
-      last_shipment_quantity: parseFloat(formData.get('lastShipmentQuantity') as string),
-      vendor_name: formData.get('supplier') as string,
-      current_quantity: parseFloat(formData.get('quantity') as string),
-      inventory_maximum: parseFloat(formData.get('parLevel') as string),
-      inventory_minimum: parseFloat(formData.get('lowStockThreshold') as string),
+      cost_per_unit: parseFloat(formData.get("cost") as string),
+      last_shipment_date: formData.get("lastShipmentDate") as string,
+      last_shipment_quantity: parseFloat(formData.get("lastShipmentQuantity") as string),
+      vendor_name: formData.get("supplier") as string,
+      current_quantity: parseFloat(formData.get("quantity") as string),
+      inventory_maximum: parseFloat(formData.get("parLevel") as string),
+      inventory_minimum: parseFloat(formData.get("lowStockThreshold") as string),
     };
 
     addItem(newItem, {
       onSuccess: () => {
-        navigate('/inventory');
+        navigate("/inventory");
       },
       onSettled: () => {
         setIsSubmitting(false);
@@ -57,7 +57,7 @@ const AddItem = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Item Name</Label>
-                <Input id="name" placeholder="Enter item name" required />
+                <Input id="inventory_name" placeholder="Enter item name" required />
               </div>
 
               <div className="space-y-2">
@@ -135,9 +135,9 @@ const AddItem = () => {
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : 'Save Item'}
+                  {isSubmitting ? "Saving..." : "Save Item"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => navigate('/inventory')} disabled={isSubmitting}>
+                <Button type="button" variant="outline" onClick={() => navigate("/inventory")} disabled={isSubmitting}>
                   Cancel
                 </Button>
               </div>
