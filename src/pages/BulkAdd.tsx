@@ -8,12 +8,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { InventoryItem } from '@/lib/mockData';
 import { toast } from 'sonner';
+import { useInventory } from '@/hooks/useInventory';
+
+interface BulkItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: string;
+  unit: string;
+  parLevel: string;
+  lowStockThreshold: string;
+  costPerUnit: string;
+  lastShipmentDate: string;
+  lastShipmentQuantity: string;
+  supplier: string;
+}
 
 const BulkAdd = () => {
   const navigate = useNavigate();
-  const [items, setItems] = useState<InventoryItem[]>([]);
+  const { addItem } = useInventory();
+  const [items, setItems] = useState<BulkItem[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const [currentItem, setCurrentItem] = useState({
     name: '',
     category: '',
@@ -35,17 +51,17 @@ const BulkAdd = () => {
       return;
     }
 
-    const newItem: InventoryItem = {
+    const newItem: BulkItem = {
       id: Math.random().toString(36).substr(2, 9),
       name: currentItem.name,
-      category: currentItem.category as InventoryItem['category'],
-      quantity: parseFloat(currentItem.quantity),
-      unit: currentItem.unit as InventoryItem['unit'],
-      parLevel: parseFloat(currentItem.parLevel),
-      lowStockThreshold: parseFloat(currentItem.lowStockThreshold),
-      costPerUnit: parseFloat(currentItem.costPerUnit),
+      category: currentItem.category,
+      quantity: currentItem.quantity,
+      unit: currentItem.unit,
+      parLevel: currentItem.parLevel,
+      lowStockThreshold: currentItem.lowStockThreshold,
+      costPerUnit: currentItem.costPerUnit,
       lastShipmentDate: currentItem.lastShipmentDate,
-      lastShipmentQuantity: parseFloat(currentItem.lastShipmentQuantity),
+      lastShipmentQuantity: currentItem.lastShipmentQuantity,
       supplier: currentItem.supplier
     };
 
@@ -70,14 +86,48 @@ const BulkAdd = () => {
     toast.success('Item removed from list');
   };
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
     if (items.length === 0) {
       toast.error('Please add at least one item');
       return;
     }
-    // Mock save - in real app would save to database
-    toast.success(`${items.length} items saved successfully`);
-    navigate('/inventory');
+    
+    setIsSaving(true);
+    let successCount = 0;
+    
+    try {
+      for (const item of items) {
+        await new Promise((resolve, reject) => {
+          addItem({
+            inventory_name: item.name,
+            category: item.category,
+            unit: item.unit,
+            cost_per_unit: parseFloat(item.costPerUnit),
+            last_shipment_date: item.lastShipmentDate,
+            last_shipment_quantity: parseFloat(item.lastShipmentQuantity),
+            vendor_name: item.supplier,
+            current_quantity: parseFloat(item.quantity),
+            inventory_maximum: parseFloat(item.parLevel),
+            inventory_minimum: parseFloat(item.lowStockThreshold),
+          }, {
+            onSuccess: () => {
+              successCount++;
+              resolve(true);
+            },
+            onError: () => {
+              reject();
+            }
+          });
+        });
+      }
+      
+      toast.success(`${successCount} items saved successfully`);
+      navigate('/inventory');
+    } catch (error) {
+      toast.error('Some items failed to save. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -88,8 +138,8 @@ const BulkAdd = () => {
             <h2 className="text-3xl font-bold text-foreground">Initial Inventory Setup</h2>
             <p className="text-muted-foreground mt-2">Add multiple items to get your inventory started</p>
           </div>
-          <Button onClick={handleSaveAll} disabled={items.length === 0}>
-            Save All Items ({items.length})
+          <Button onClick={handleSaveAll} disabled={items.length === 0 || isSaving}>
+            {isSaving ? 'Saving...' : `Save All Items (${items.length})`}
           </Button>
         </div>
 
@@ -261,13 +311,14 @@ const BulkAdd = () => {
                         <TableCell>{item.category}</TableCell>
                         <TableCell>{item.quantity} {item.unit}</TableCell>
                         <TableCell>{item.parLevel} {item.unit}</TableCell>
-                        <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
+                        <TableCell>${parseFloat(item.costPerUnit).toFixed(2)}</TableCell>
                         <TableCell>{item.supplier}</TableCell>
                         <TableCell className="text-right">
                           <Button 
                             variant="ghost" 
                             size="icon"
                             onClick={() => handleRemoveItem(item.id)}
+                            disabled={isSaving}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>

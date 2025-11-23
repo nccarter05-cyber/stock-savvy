@@ -1,11 +1,22 @@
 import Layout from '@/components/Layout';
-import { mockInventory, getLowStockItems } from '@/lib/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useInventory } from '@/hooks/useInventory';
 
 const LowStock = () => {
-  const lowStockItems = getLowStockItems(mockInventory);
+  const { getLowStockItems, isLoading } = useInventory();
+  const lowStockItems = getLowStockItems();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -18,47 +29,54 @@ const LowStock = () => {
         {lowStockItems.length === 0 ? (
           <Card>
             <CardContent className="py-10 text-center">
-              <p className="text-muted-foreground">No items below par level</p>
+              <p className="text-muted-foreground">No items below minimum stock level</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {lowStockItems.map((item) => (
-              <Card key={item.id} className="border-l-4 border-l-destructive">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl">{item.name}</CardTitle>
-                    <Badge variant="secondary">{item.category}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Current Stock:</span>
-                    <span className="font-semibold text-destructive">
-                      {item.quantity} {item.unit}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Par Level:</span>
-                    <span className="font-semibold">
-                      {item.parLevel} {item.unit}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Need to Order:</span>
-                    <span className="font-semibold text-primary">
-                      {item.parLevel - item.quantity} {item.unit}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t">
-                    <span className="text-sm text-muted-foreground">Est. Cost:</span>
-                    <span className="font-semibold">
-                      ${((item.parLevel - item.quantity) * item.costPerUnit).toFixed(2)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {lowStockItems.map((item) => {
+              const needToOrder = (item.inventory_maximum || 0) - item.current_quantity;
+              const estimatedCost = needToOrder * (item.cost_per_unit || 0);
+              
+              return (
+                <Card key={item.id} className="border-l-4 border-l-destructive">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-xl">{item.inventory_name}</CardTitle>
+                      {item.category && (
+                        <Badge variant="secondary">{item.category}</Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Current Stock:</span>
+                      <span className="font-semibold text-destructive">
+                        {item.current_quantity} {item.unit || ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Max Level:</span>
+                      <span className="font-semibold">
+                        {item.inventory_maximum || 0} {item.unit || ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Need to Order:</span>
+                      <span className="font-semibold text-primary">
+                        {needToOrder} {item.unit || ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t">
+                      <span className="text-sm text-muted-foreground">Est. Cost:</span>
+                      <span className="font-semibold">
+                        ${estimatedCost.toFixed(2)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

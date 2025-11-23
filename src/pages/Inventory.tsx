@@ -1,15 +1,14 @@
-import { useState } from 'react';
 import Layout from '@/components/Layout';
-import { mockInventory, InventoryItem } from '@/lib/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useInventory } from '@/hooks/useInventory';
 
 const Inventory = () => {
-  const [items] = useState<InventoryItem[]>(mockInventory);
   const navigate = useNavigate();
+  const { items, isLoading, deleteItem } = useInventory();
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -22,6 +21,16 @@ const Inventory = () => {
     return colors[category] || '';
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -30,59 +39,88 @@ const Inventory = () => {
           <Button onClick={() => navigate('/add-item')}>Add New Item</Button>
         </div>
 
-        <div className="border rounded-lg bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead>Par Level</TableHead>
-                <TableHead>Cost/Unit</TableHead>
-                <TableHead>Total Value</TableHead>
-                <TableHead>Last Shipment</TableHead>
-                <TableHead>Qty Received</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={getCategoryColor(item.category)}>
-                      {item.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className={item.quantity <= item.parLevel ? 'text-destructive font-semibold' : ''}>
-                      {item.quantity}
-                    </span>
-                  </TableCell>
-                  <TableCell>{item.unit}</TableCell>
-                  <TableCell>{item.parLevel}</TableCell>
-                  <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
-                  <TableCell>${(item.quantity * item.costPerUnit).toFixed(2)}</TableCell>
-                  <TableCell>{new Date(item.lastShipmentDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{item.lastShipmentQuantity} {item.unit}</TableCell>
-                  <TableCell>{item.supplier}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+        {items.length === 0 ? (
+          <div className="border rounded-lg bg-card p-12 text-center">
+            <p className="text-muted-foreground mb-4">No inventory items yet</p>
+            <Button onClick={() => navigate('/add-item')}>Add Your First Item</Button>
+          </div>
+        ) : (
+          <div className="border rounded-lg bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Max Level</TableHead>
+                  <TableHead>Cost/Unit</TableHead>
+                  <TableHead>Total Value</TableHead>
+                  <TableHead>Last Shipment</TableHead>
+                  <TableHead>Qty Received</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => {
+                  const quantity = item.current_quantity || 0;
+                  const costPerUnit = item.cost_per_unit || 0;
+                  const totalValue = quantity * costPerUnit;
+                  const minLevel = item.inventory_minimum || 0;
+                  
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.inventory_name}</TableCell>
+                      <TableCell>
+                        {item.category ? (
+                          <Badge variant="secondary" className={getCategoryColor(item.category)}>
+                            {item.category}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className={quantity <= minLevel ? 'text-destructive font-semibold' : ''}>
+                          {quantity}
+                        </span>
+                      </TableCell>
+                      <TableCell>{item.unit || '-'}</TableCell>
+                      <TableCell>{item.inventory_maximum || '-'}</TableCell>
+                      <TableCell>${costPerUnit.toFixed(2)}</TableCell>
+                      <TableCell>${totalValue.toFixed(2)}</TableCell>
+                      <TableCell>
+                        {item.last_shipment_date 
+                          ? new Date(item.last_shipment_date).toLocaleDateString()
+                          : '-'
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {item.last_shipment_quantity 
+                          ? `${item.last_shipment_quantity} ${item.unit || ''}`
+                          : '-'
+                        }
+                      </TableCell>
+                      <TableCell>{item.vendor_name || '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => deleteItem(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </Layout>
   );

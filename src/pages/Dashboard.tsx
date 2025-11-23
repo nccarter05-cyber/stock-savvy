@@ -1,12 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Package, AlertTriangle } from 'lucide-react';
 import Layout from '@/components/Layout';
-import { mockInventory, calculateTotalValue, getLowStockItems } from '@/lib/mockData';
+import { useInventory } from '@/hooks/useInventory';
 
 const Dashboard = () => {
-  const totalValue = calculateTotalValue(mockInventory);
-  const lowStockItems = getLowStockItems(mockInventory);
-  const totalItems = mockInventory.length;
+  const { items, isLoading, calculateTotalValue, getLowStockItems } = useInventory();
+  
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </Layout>
+    );
+  }
+
+  const totalValue = calculateTotalValue();
+  const lowStockItems = getLowStockItems();
+  const totalItems = items.length;
 
   return (
     <Layout>
@@ -55,24 +67,28 @@ const Dashboard = () => {
             <CardTitle>Recent Low Stock Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {lowStockItems.slice(0, 5).map((item) => (
-                <div key={item.id} className="flex items-center justify-between border-b pb-2">
-                  <div>
-                    <p className="font-medium text-foreground">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">{item.category}</p>
+            {lowStockItems.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">No low stock items</p>
+            ) : (
+              <div className="space-y-4">
+                {lowStockItems.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between border-b pb-2">
+                    <div>
+                      <p className="font-medium text-foreground">{item.inventory_name}</p>
+                      <p className="text-sm text-muted-foreground">{item.category || 'No category'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-destructive">
+                        {item.current_quantity} {item.unit || ''}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Min: {item.inventory_minimum || 0} {item.unit || ''}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-destructive">
-                      {item.quantity} {item.unit}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Par: {item.parLevel} {item.unit}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
