@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      inventory_info: {
+        Row: {
+          created_at: string | null
+          id: string
+          inventory_name: string
+          updated_at: string | null
+          user_id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inventory_name: string
+          updated_at?: string | null
+          user_id: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inventory_name?: string
+          updated_at?: string | null
+          user_id?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_info_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_quantity: {
+        Row: {
+          created_at: string | null
+          current_quantity: number
+          id: string
+          inventory_id: string
+          inventory_maximum: number | null
+          inventory_minimum: number | null
+          updated_at: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_quantity?: number
+          id?: string
+          inventory_id: string
+          inventory_maximum?: number | null
+          inventory_minimum?: number | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_quantity?: number
+          id?: string
+          inventory_id?: string
+          inventory_maximum?: number | null
+          inventory_minimum?: number | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_quantity_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: true
+            referencedRelation: "inventory_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_quantity_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -56,6 +139,39 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vendor_info: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          updated_at: string | null
+          user_id: string
+          vendor_name: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id: string
+          vendor_name: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vendor_name?: string
         }
         Relationships: []
       }
