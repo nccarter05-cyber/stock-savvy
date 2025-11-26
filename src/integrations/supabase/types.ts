@@ -73,6 +73,7 @@ export type Database = {
           inventory_maximum: number | null
           inventory_minimum: number | null
           updated_at: string | null
+          user_id: string
           vendor_id: string | null
         }
         Insert: {
@@ -83,6 +84,7 @@ export type Database = {
           inventory_maximum?: number | null
           inventory_minimum?: number | null
           updated_at?: string | null
+          user_id: string
           vendor_id?: string | null
         }
         Update: {
@@ -93,6 +95,7 @@ export type Database = {
           inventory_maximum?: number | null
           inventory_minimum?: number | null
           updated_at?: string | null
+          user_id?: string
           vendor_id?: string | null
         }
         Relationships: [
