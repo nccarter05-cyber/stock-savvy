@@ -98,22 +98,7 @@ export type Database = {
           user_id?: string
           vendor_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "inventory_quantity_inventory_id_fkey"
-            columns: ["inventory_id"]
-            isOneToOne: true
-            referencedRelation: "inventory_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inventory_quantity_vendor_id_fkey"
-            columns: ["vendor_id"]
-            isOneToOne: false
-            referencedRelation: "vendor_info"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
