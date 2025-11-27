@@ -198,6 +198,10 @@ export const useInventory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast({
+        title: 'Updated',
+        description: 'Quantity updated successfully',
+      });
     },
     onError: (error: any) => {
       toast({
