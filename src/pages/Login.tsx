@@ -18,20 +18,17 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Redirect authenticated users to dashboard
         if (session?.user) {
           navigate('/dashboard');
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -133,27 +130,27 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30">
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-8">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
+        <CardHeader className="space-y-3 text-center pb-4">
           <div className="flex justify-center">
             <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
               <Package className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl">RestaurantStock</CardTitle>
-            <CardDescription>Manage your restaurant inventory</CardDescription>
+            <CardTitle className="text-xl md:text-2xl">RestaurantStock</CardTitle>
+            <CardDescription className="text-sm">Manage your restaurant inventory</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="login">
+            <TabsContent value="login" className="mt-0">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
@@ -164,6 +161,7 @@ const Login = () => {
                     placeholder="you@restaurant.com" 
                     required 
                     disabled={loading}
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
@@ -174,15 +172,16 @@ const Login = () => {
                     type="password" 
                     required 
                     disabled={loading}
+                    className="h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-11" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
             </TabsContent>
             
-            <TabsContent value="signup">
+            <TabsContent value="signup" className="mt-0">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-restaurant">Restaurant Name</Label>
@@ -192,6 +191,7 @@ const Login = () => {
                     placeholder="Your Restaurant" 
                     required 
                     disabled={loading}
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
@@ -203,6 +203,7 @@ const Login = () => {
                     placeholder="you@restaurant.com" 
                     required 
                     disabled={loading}
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
@@ -213,6 +214,7 @@ const Login = () => {
                     type="password" 
                     required 
                     disabled={loading}
+                    className="h-11"
                   />
                 </div>
                 <div className="space-y-2">
@@ -223,9 +225,10 @@ const Login = () => {
                     type="password" 
                     required 
                     disabled={loading}
+                    className="h-11"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-11" disabled={loading}>
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
