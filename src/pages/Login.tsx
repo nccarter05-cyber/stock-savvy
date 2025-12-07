@@ -142,8 +142,8 @@ const Login = () => {
             </div>
           </div>
           <div>
-            <CardTitle className="text-xl md:text-2xl">RestaurantStock</CardTitle>
-            <CardDescription className="text-sm">Manage your restaurant inventory</CardDescription>
+            <CardTitle className="text-xl md:text-2xl">Simple Inventory</CardTitle>
+            <CardDescription className="text-sm">Manage your inventory easily</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
