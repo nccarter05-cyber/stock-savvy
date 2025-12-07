@@ -78,6 +78,10 @@ const Inventory = () => {
               <span className="ml-1 text-foreground">${totalValue.toFixed(2)}</span>
             </div>
             <div>
+              <span className="text-muted-foreground">Min:</span>
+              <span className="ml-1 text-foreground">{item.inventory_minimum || '-'}</span>
+            </div>
+            <div>
               <span className="text-muted-foreground">Max:</span>
               <span className="ml-1 text-foreground">{item.inventory_maximum || '-'}</span>
             </div>
@@ -150,6 +154,7 @@ const Inventory = () => {
                     <TableHead>Quantity</TableHead>
                     <TableHead>Adjust Qty</TableHead>
                     <TableHead>Unit</TableHead>
+                    <TableHead>Min Level</TableHead>
                     <TableHead>Max Level</TableHead>
                     <TableHead>Cost/Unit</TableHead>
                     <TableHead>Total Value</TableHead>
@@ -204,6 +209,7 @@ const Inventory = () => {
                           </div>
                         </TableCell>
                         <TableCell>{item.unit || '-'}</TableCell>
+                        <TableCell>{item.inventory_minimum || '-'}</TableCell>
                         <TableCell>{item.inventory_maximum || '-'}</TableCell>
                         <TableCell>${costPerUnit.toFixed(2)}</TableCell>
                         <TableCell>${totalValue.toFixed(2)}</TableCell>
