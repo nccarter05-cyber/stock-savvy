@@ -20,55 +20,55 @@ const LowStock = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-8 w-8 text-destructive" />
-          <h2 className="text-3xl font-bold text-foreground">Low Stock Alerts</h2>
+          <AlertTriangle className="h-6 w-6 md:h-8 md:w-8 text-destructive" />
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Low Stock Alerts</h2>
         </div>
 
         {lowStockItems.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center">
+            <CardContent className="py-8 md:py-10 text-center">
               <p className="text-muted-foreground">No items below minimum stock level</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
             {lowStockItems.map((item) => {
               const needToOrder = (item.inventory_maximum || 0) - item.current_quantity;
               const estimatedCost = needToOrder * (item.cost_per_unit || 0);
               
               return (
                 <Card key={item.id} className="border-l-4 border-l-destructive">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl">{item.inventory_name}</CardTitle>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <CardTitle className="text-lg md:text-xl">{item.inventory_name}</CardTitle>
                       {item.category && (
-                        <Badge variant="secondary">{item.category}</Badge>
+                        <Badge variant="secondary" className="shrink-0">{item.category}</Badge>
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-2">
+                  <CardContent className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Current Stock:</span>
+                      <span className="text-muted-foreground">Current Stock:</span>
                       <span className="font-semibold text-destructive">
                         {item.current_quantity} {item.unit || ''}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Max Level:</span>
+                      <span className="text-muted-foreground">Max Level:</span>
                       <span className="font-semibold">
                         {item.inventory_maximum || 0} {item.unit || ''}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Need to Order:</span>
+                      <span className="text-muted-foreground">Need to Order:</span>
                       <span className="font-semibold text-primary">
                         {needToOrder} {item.unit || ''}
                       </span>
                     </div>
                     <div className="flex justify-between pt-2 border-t">
-                      <span className="text-sm text-muted-foreground">Est. Cost:</span>
+                      <span className="text-muted-foreground">Est. Cost:</span>
                       <span className="font-semibold">
                         ${estimatedCost.toFixed(2)}
                       </span>

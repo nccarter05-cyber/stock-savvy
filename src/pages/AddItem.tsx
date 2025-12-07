@@ -46,12 +46,12 @@ const AddItem = () => {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-3xl font-bold text-foreground">Add New Item</h2>
+      <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground">Add New Item</h2>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Item Details</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Item Details</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,7 +76,7 @@ const AddItem = () => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantity</Label>
                   <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" required />
@@ -86,7 +86,7 @@ const AddItem = () => {
                   <Label htmlFor="unit">Unit</Label>
                   <Select value={unit} onValueChange={setUnit} required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select unit" />
+                      <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="lb">lb</SelectItem>
@@ -99,14 +99,14 @@ const AddItem = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="parLevel">Par Level</Label>
                   <Input id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0" required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lowStockThreshold">Low Stock Alert Level</Label>
+                  <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
                   <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" required />
                 </div>
               </div>
@@ -121,19 +121,19 @@ const AddItem = () => {
                 <Input id="supplier" name="supplier" placeholder="Enter supplier name" required />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="lastShipmentDate">Last Shipment Date</Label>
+                  <Label htmlFor="lastShipmentDate" className="text-sm">Last Shipment</Label>
                   <Input id="lastShipmentDate" name="lastShipmentDate" type="date" required />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lastShipmentQuantity">Quantity Received</Label>
+                  <Label htmlFor="lastShipmentQuantity" className="text-sm">Qty Received</Label>
                   <Input id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0" required />
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-4">
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
                   {isSubmitting ? "Saving..." : "Save Item"}
                 </Button>
