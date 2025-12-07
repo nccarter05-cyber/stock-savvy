@@ -10,10 +10,10 @@ import BulkAdd from "./pages/BulkAdd";
 import LowStock from "./pages/LowStock";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { User, Session } from '@supabase/supabase-js';
-
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -64,6 +64,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
