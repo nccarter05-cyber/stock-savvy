@@ -56,21 +56,23 @@ const LowStock = () => {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Max Level:</span>
+                      <span className="text-muted-foreground">Vendor:</span>
                       <span className="font-semibold">
-                        {item.inventory_maximum || 0} {item.unit || ''}
+                        {item.vendor_name || 'No vendor'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Need to Order:</span>
-                      <span className="font-semibold text-primary">
-                        {needToOrder} {item.unit || ''}
+                      <span className="text-muted-foreground">Last Ordered:</span>
+                      <span className="font-semibold">
+                        {item.last_shipment_date 
+                          ? new Date(item.last_shipment_date).toLocaleDateString() 
+                          : 'Never'}
                       </span>
                     </div>
                     <div className="flex justify-between pt-2 border-t">
-                      <span className="text-muted-foreground">Est. Cost:</span>
-                      <span className="font-semibold">
-                        ${estimatedCost.toFixed(2)}
+                      <span className="text-muted-foreground">Need to Order:</span>
+                      <span className="font-semibold text-primary">
+                        {needToOrder} {item.unit || ''}
                       </span>
                     </div>
                   </CardContent>
