@@ -11,9 +11,14 @@ import { useInventory } from '@/hooks/useInventory';
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { items, isLoading, deleteItem, updateQuantity, setQuantity } = useInventory();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
+  const { items, isLoading, deleteItem, updateQuantity } = useInventory();
+  const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+
+  const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
+  
+  const setAdjustAmount = (itemId: string, value: number) => {
+    setAdjustAmounts(prev => ({ ...prev, [itemId]: Math.max(1, value) }));
+  };
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -100,51 +105,22 @@ const Inventory = () => {
                 variant="outline"
                 size="icon"
                 className="h-9 w-9"
-                onClick={() => updateQuantity({ itemId: item.id, delta: -1 })}
+                onClick={() => updateQuantity({ itemId: item.id, delta: -getAdjustAmount(item.id) })}
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              {editingId === item.id ? (
-                <Input
-                  type="number"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={() => {
-                    const val = parseInt(editValue);
-                    if (!isNaN(val)) {
-                      setQuantity({ itemId: item.id, quantity: val });
-                    }
-                    setEditingId(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      const val = parseInt(editValue);
-                      if (!isNaN(val)) {
-                        setQuantity({ itemId: item.id, quantity: val });
-                      }
-                      setEditingId(null);
-                    }
-                  }}
-                  className="w-16 h-9 text-center"
-                  autoFocus
-                />
-              ) : (
-                <Button
-                  variant="ghost"
-                  className="w-12 h-9 text-center font-medium"
-                  onClick={() => {
-                    setEditingId(item.id);
-                    setEditValue(quantity.toString());
-                  }}
-                >
-                  {quantity}
-                </Button>
-              )}
+              <Input
+                type="number"
+                min="1"
+                value={getAdjustAmount(item.id)}
+                onChange={(e) => setAdjustAmount(item.id, parseInt(e.target.value) || 1)}
+                className="w-14 h-9 text-center"
+              />
               <Button
                 variant="outline"
                 size="icon"
                 className="h-9 w-9"
-                onClick={() => updateQuantity({ itemId: item.id, delta: 1 })}
+                onClick={() => updateQuantity({ itemId: item.id, delta: getAdjustAmount(item.id) })}
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -233,51 +209,22 @@ const Inventory = () => {
                               variant="outline"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => updateQuantity({ itemId: item.id, delta: -1 })}
+                              onClick={() => updateQuantity({ itemId: item.id, delta: -getAdjustAmount(item.id) })}
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
-                            {editingId === item.id ? (
-                              <Input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => {
-                                  const val = parseInt(editValue);
-                                  if (!isNaN(val)) {
-                                    setQuantity({ itemId: item.id, quantity: val });
-                                  }
-                                  setEditingId(null);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const val = parseInt(editValue);
-                                    if (!isNaN(val)) {
-                                      setQuantity({ itemId: item.id, quantity: val });
-                                    }
-                                    setEditingId(null);
-                                  }
-                                }}
-                                className="w-14 h-7 text-center text-sm"
-                                autoFocus
-                              />
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                className="w-10 h-7 text-center text-sm font-medium px-2"
-                                onClick={() => {
-                                  setEditingId(item.id);
-                                  setEditValue(quantity.toString());
-                                }}
-                              >
-                                {quantity}
-                              </Button>
-                            )}
+                            <Input
+                              type="number"
+                              min="1"
+                              value={getAdjustAmount(item.id)}
+                              onChange={(e) => setAdjustAmount(item.id, parseInt(e.target.value) || 1)}
+                              className="w-14 h-7 text-center text-sm"
+                            />
                             <Button
                               variant="outline"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => updateQuantity({ itemId: item.id, delta: 1 })}
+                              onClick={() => updateQuantity({ itemId: item.id, delta: getAdjustAmount(item.id) })}
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
