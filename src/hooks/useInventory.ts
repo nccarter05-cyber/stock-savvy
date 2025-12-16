@@ -212,6 +212,33 @@ export const useInventory = () => {
     },
   });
 
+  const setQuantityMutation = useMutation({
+    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+      const newQuantity = Math.max(0, quantity);
+
+      const { error: updateError } = await supabase
+        .from('inventory_quantity')
+        .update({ current_quantity: newQuantity })
+        .eq('inventory_id', itemId);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast({
+        title: 'Updated',
+        description: 'Quantity updated successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update quantity',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
       // Delete inventory item (cascade will handle quantity)
@@ -260,6 +287,7 @@ export const useInventory = () => {
     addItem: addItemMutation.mutate,
     deleteItem: deleteItemMutation.mutate,
     updateQuantity: updateQuantityMutation.mutate,
+    setQuantity: setQuantityMutation.mutate,
     calculateTotalValue,
     getLowStockItems,
   };
