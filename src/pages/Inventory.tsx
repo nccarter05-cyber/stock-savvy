@@ -1,15 +1,19 @@
+import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { items, isLoading, deleteItem, updateQuantity } = useInventory();
+  const { items, isLoading, deleteItem, updateQuantity, setQuantity } = useInventory();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -91,7 +95,7 @@ const Inventory = () => {
             <span className="text-sm text-muted-foreground">
               {item.vendor_name || 'No supplier'}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="icon"
@@ -100,7 +104,42 @@ const Inventory = () => {
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="w-8 text-center font-medium">{quantity}</span>
+              {editingId === item.id ? (
+                <Input
+                  type="number"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => {
+                    const val = parseInt(editValue);
+                    if (!isNaN(val)) {
+                      setQuantity({ itemId: item.id, quantity: val });
+                    }
+                    setEditingId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt(editValue);
+                      if (!isNaN(val)) {
+                        setQuantity({ itemId: item.id, quantity: val });
+                      }
+                      setEditingId(null);
+                    }
+                  }}
+                  className="w-16 h-9 text-center"
+                  autoFocus
+                />
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-12 h-9 text-center font-medium"
+                  onClick={() => {
+                    setEditingId(item.id);
+                    setEditValue(quantity.toString());
+                  }}
+                >
+                  {quantity}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="icon"
@@ -198,6 +237,42 @@ const Inventory = () => {
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
+                            {editingId === item.id ? (
+                              <Input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => {
+                                  const val = parseInt(editValue);
+                                  if (!isNaN(val)) {
+                                    setQuantity({ itemId: item.id, quantity: val });
+                                  }
+                                  setEditingId(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const val = parseInt(editValue);
+                                    if (!isNaN(val)) {
+                                      setQuantity({ itemId: item.id, quantity: val });
+                                    }
+                                    setEditingId(null);
+                                  }
+                                }}
+                                className="w-14 h-7 text-center text-sm"
+                                autoFocus
+                              />
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                className="w-10 h-7 text-center text-sm font-medium px-2"
+                                onClick={() => {
+                                  setEditingId(item.id);
+                                  setEditValue(quantity.toString());
+                                }}
+                              >
+                                {quantity}
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="icon"
