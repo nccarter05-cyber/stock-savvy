@@ -82,6 +82,7 @@ const Login = () => {
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
     const restaurantName = formData.get('restaurantName') as string;
+    const inventoryDbName = formData.get('inventoryDbName') as string;
 
     if (password !== confirmPassword) {
       toast({
@@ -103,6 +104,16 @@ const Login = () => {
       return;
     }
 
+    if (!inventoryDbName.trim()) {
+      toast({
+        title: "Inventory DB Name required",
+        description: "Please enter an Inventory DB Name to share inventory with your team.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const redirectUrl = `${window.location.origin}/dashboard`;
     
     const { error } = await supabase.auth.signUp({
@@ -112,6 +123,7 @@ const Login = () => {
         emailRedirectTo: redirectUrl,
         data: {
           restaurant_name: restaurantName,
+          inventory_db_name: inventoryDbName,
         },
       },
     });
@@ -221,6 +233,20 @@ const Login = () => {
                     disabled={loading}
                     className="h-11"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-inventory-db">Inventory DB Name</Label>
+                  <Input 
+                    id="signup-inventory-db" 
+                    name="inventoryDbName"
+                    placeholder="shared-inventory-name" 
+                    required 
+                    disabled={loading}
+                    className="h-11"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Users with the same DB name will share inventory data
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>

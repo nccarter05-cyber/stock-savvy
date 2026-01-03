@@ -113,6 +113,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          inventory_db_name: string | null
           restaurant_name: string | null
           updated_at: string | null
         }
@@ -120,6 +121,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id: string
+          inventory_db_name?: string | null
           restaurant_name?: string | null
           updated_at?: string | null
         }
@@ -127,6 +129,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          inventory_db_name?: string | null
           restaurant_name?: string | null
           updated_at?: string | null
         }
