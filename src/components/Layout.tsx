@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, X } from 'lucide-react';
+import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -13,6 +14,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -27,6 +29,42 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch pending requests count for team owners
+  useEffect(() => {
+    const fetchPendingRequests = async () => {
+      if (!user) return;
+
+      // Get user's team
+      const { data: membership } = await supabase
+        .from('team_memberships')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!membership) return;
+
+      // Check if user is owner
+      const { data: team } = await supabase
+        .from('inventory_teams')
+        .select('owner_id')
+        .eq('id', membership.team_id)
+        .single();
+
+      if (team?.owner_id !== user.id) return;
+
+      // Count pending requests
+      const { count } = await supabase
+        .from('join_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', membership.team_id)
+        .eq('status', 'pending');
+
+      setPendingRequestsCount(count || 0);
+    };
+
+    fetchPendingRequests();
+  }, [user]);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -54,6 +92,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/add-item', icon: Plus, label: 'Add Item' },
     { path: '/bulk-add', icon: ListPlus, label: 'Bulk Add' },
+    { path: '/team-settings', icon: Users, label: 'Team', badge: pendingRequestsCount },
   ];
 
   const NavLink = ({ item, onClick }: { item: typeof navItems[0]; onClick?: () => void }) => (
@@ -68,6 +107,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     >
       <item.icon className="h-5 w-5" />
       <span>{item.label}</span>
+      {item.badge && item.badge > 0 && (
+        <Badge variant="destructive" className="ml-auto h-5 min-w-5 text-xs">
+          {item.badge}
+        </Badge>
+      )}
     </Link>
   );
 
@@ -151,6 +195,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               >
                 <item.icon className="h-4 w-4" />
                 <span className="text-sm">{item.label}</span>
+                {item.badge && item.badge > 0 && (
+                  <Badge variant="destructive" className="h-5 min-w-5 text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
               </Link>
             ))}
           </div>
@@ -160,17 +209,24 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t md:hidden z-50 safe-area-pb">
         <div className="flex justify-around py-2">
-          {navItems.slice(0, 4).map((item) => (
+          {navItems.slice(0, 5).map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg transition-colors relative ${
                 isActive(item.path)
                   ? 'text-primary'
                   : 'text-muted-foreground'
               }`}
             >
-              <item.icon className="h-5 w-5" />
+              <div className="relative">
+                <item.icon className="h-5 w-5" />
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
               <span className="text-xs">{item.label.split(' ')[0]}</span>
             </Link>
           ))}

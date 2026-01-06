@@ -114,9 +114,16 @@ const Login = () => {
       return;
     }
 
+    // Check if team with this inventory_db_name already exists
+    const { data: existingTeam } = await supabase
+      .from('inventory_teams')
+      .select('id')
+      .eq('inventory_db_name', inventoryDbName.trim())
+      .maybeSingle();
+
     const redirectUrl = `${window.location.origin}/dashboard`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -134,11 +141,64 @@ const Login = () => {
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Account created!",
-        description: "You can now sign in with your credentials.",
-      });
+      setLoading(false);
+      return;
+    }
+
+    const newUserId = signUpData.user?.id;
+    
+    if (newUserId) {
+      if (existingTeam) {
+        // Team exists - create a join request
+        const { error: requestError } = await supabase
+          .from('join_requests')
+          .insert({
+            team_id: existingTeam.id,
+            user_id: newUserId,
+            status: 'pending',
+          });
+
+        if (requestError) {
+          console.error('Failed to create join request:', requestError);
+        }
+
+        toast({
+          title: "Account created!",
+          description: "Your request to join the team has been sent. The team owner will review it.",
+        });
+      } else {
+        // Team doesn't exist - create new team and add user as owner
+        const { data: newTeam, error: teamError } = await supabase
+          .from('inventory_teams')
+          .insert({
+            inventory_db_name: inventoryDbName.trim(),
+            owner_id: newUserId,
+          })
+          .select('id')
+          .single();
+
+        if (teamError) {
+          console.error('Failed to create team:', teamError);
+        } else if (newTeam) {
+          // Add user as owner in team_memberships
+          const { error: memberError } = await supabase
+            .from('team_memberships')
+            .insert({
+              team_id: newTeam.id,
+              user_id: newUserId,
+              role: 'owner',
+            });
+
+          if (memberError) {
+            console.error('Failed to create membership:', memberError);
+          }
+        }
+
+        toast({
+          title: "Account created!",
+          description: "You are now the owner of this inventory team.",
+        });
+      }
     }
     
     setLoading(false);
@@ -245,7 +305,7 @@ const Login = () => {
                     className="h-11"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Users with the same DB name will share inventory data
+                    Enter an existing name to request to join, or a new name to create your own team
                   </p>
                 </div>
                 <div className="space-y-2">
