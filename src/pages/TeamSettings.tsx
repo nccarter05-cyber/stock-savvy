@@ -2,8 +2,11 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTeam } from '@/hooks/useTeam';
-import { Users, UserPlus, Crown, UserMinus, Clock, Check, X, AlertCircle } from 'lucide-react';
+import { Users, UserPlus, Crown, UserMinus, Clock, Check, X, Plus, LogIn } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
@@ -18,9 +21,15 @@ const TeamSettings = () => {
     denyRequest,
     removeMember,
     cancelRequest,
+    createTeam,
+    requestToJoin,
+    isCreatingTeam,
+    isRequestingToJoin,
   } = useTeam();
   
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [joinTeamName, setJoinTeamName] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -29,6 +38,26 @@ const TeamSettings = () => {
   }, []);
 
   const isOwner = team?.owner_id === currentUserId;
+
+  const handleCreateTeam = async () => {
+    if (!newTeamName.trim()) return;
+    try {
+      await createTeam(newTeamName.trim());
+      setNewTeamName('');
+    } catch {
+      // Error handled by mutation
+    }
+  };
+
+  const handleRequestToJoin = async () => {
+    if (!joinTeamName.trim()) return;
+    try {
+      await requestToJoin(joinTeamName.trim());
+      setJoinTeamName('');
+    } catch {
+      // Error handled by mutation
+    }
+  };
 
   if (isLoading) {
     return (
@@ -75,29 +104,94 @@ const TeamSettings = () => {
     );
   }
 
-  // User is not part of any team (shouldn't happen normally)
+  // User is not part of any team - show create/join options
   if (!team) {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                  <AlertCircle className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div>
-                  <CardTitle>No Team Found</CardTitle>
-                  <CardDescription>You're not part of any team yet</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Please contact support if you believe this is an error.
-              </p>
-            </CardContent>
-          </Card>
+          <div>
+            <h1 className="text-2xl font-bold mb-1">Get Started with Teams</h1>
+            <p className="text-muted-foreground">Create your own team or join an existing one</p>
+          </div>
+
+          <Tabs defaultValue="create" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="create" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Team
+              </TabsTrigger>
+              <TabsTrigger value="join" className="gap-2">
+                <LogIn className="h-4 w-4" />
+                Join Team
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="create">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Create a New Team</CardTitle>
+                  <CardDescription>
+                    Start your own team and invite others to join. You'll be the owner and can manage members.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="team-name">Team Name</Label>
+                    <Input
+                      id="team-name"
+                      placeholder="e.g., mcs-bbq"
+                      value={newTeamName}
+                      onChange={(e) => setNewTeamName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCreateTeam()}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This will be your team's unique identifier. Use lowercase letters, numbers, and hyphens.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleCreateTeam}
+                    disabled={!newTeamName.trim() || isCreatingTeam}
+                    className="w-full"
+                  >
+                    {isCreatingTeam ? 'Creating...' : 'Create Team'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="join">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Join an Existing Team</CardTitle>
+                  <CardDescription>
+                    Enter the team name to request access. The team owner will need to approve your request.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="join-team-name">Team Name</Label>
+                    <Input
+                      id="join-team-name"
+                      placeholder="Enter team name"
+                      value={joinTeamName}
+                      onChange={(e) => setJoinTeamName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleRequestToJoin()}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ask the team owner for their team name to request access.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleRequestToJoin}
+                    disabled={!joinTeamName.trim() || isRequestingToJoin}
+                    className="w-full"
+                  >
+                    {isRequestingToJoin ? 'Sending Request...' : 'Request to Join'}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </Layout>
     );

@@ -280,6 +280,123 @@ export const useTeam = () => {
     },
   });
 
+  // Create a new team
+  const createTeamMutation = useMutation({
+    mutationFn: async (inventoryDbName: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Check if team name already exists
+      const { data: existingTeam } = await supabase
+        .from('inventory_teams')
+        .select('id')
+        .eq('inventory_db_name', inventoryDbName)
+        .maybeSingle();
+
+      if (existingTeam) {
+        throw new Error('A team with this name already exists');
+      }
+
+      // Create the team
+      const { data: newTeam, error: teamError } = await supabase
+        .from('inventory_teams')
+        .insert({
+          owner_id: user.id,
+          inventory_db_name: inventoryDbName,
+        })
+        .select()
+        .single();
+
+      if (teamError) throw teamError;
+
+      // Add owner as team member
+      const { error: memberError } = await supabase
+        .from('team_memberships')
+        .insert({
+          team_id: newTeam.id,
+          user_id: user.id,
+          role: 'owner',
+        });
+
+      if (memberError) throw memberError;
+
+      return newTeam;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: ['team-members'] });
+      toast({
+        title: 'Team created',
+        description: 'Your team has been created successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create team',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Request to join an existing team
+  const requestToJoinMutation = useMutation({
+    mutationFn: async (inventoryDbName: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Find the team by inventory_db_name
+      const { data: targetTeam, error: teamError } = await supabase
+        .from('inventory_teams')
+        .select('id')
+        .eq('inventory_db_name', inventoryDbName)
+        .maybeSingle();
+
+      if (teamError) throw teamError;
+      if (!targetTeam) {
+        throw new Error('No team found with that name');
+      }
+
+      // Check if user already has a pending request
+      const { data: existingRequest } = await supabase
+        .from('join_requests')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('team_id', targetTeam.id)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (existingRequest) {
+        throw new Error('You already have a pending request for this team');
+      }
+
+      // Create join request
+      const { error: requestError } = await supabase
+        .from('join_requests')
+        .insert({
+          team_id: targetTeam.id,
+          user_id: user.id,
+          status: 'pending',
+        });
+
+      if (requestError) throw requestError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-join-request'] });
+      toast({
+        title: 'Request sent',
+        description: 'Your request to join the team has been sent.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send join request',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     team,
     members,
@@ -290,5 +407,9 @@ export const useTeam = () => {
     denyRequest: denyRequestMutation.mutate,
     removeMember: removeMemberMutation.mutate,
     cancelRequest: cancelRequestMutation.mutate,
+    createTeam: createTeamMutation.mutateAsync,
+    requestToJoin: requestToJoinMutation.mutateAsync,
+    isCreatingTeam: createTeamMutation.isPending,
+    isRequestingToJoin: requestToJoinMutation.isPending,
   };
 };
