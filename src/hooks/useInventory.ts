@@ -31,6 +31,7 @@ export const useInventory = () => {
       }
 
       // Fetch inventory with quantities and vendor info
+      // RLS policies now handle team-based access, so we don't filter by user_id
       const { data: inventoryData, error: inventoryError } = await supabase
         .from('inventory_info')
         .select(`
@@ -51,8 +52,7 @@ export const useInventory = () => {
             inventory_maximum,
             inventory_minimum
           )
-        `)
-        .eq('user_id', user.id);
+        `);
 
       if (inventoryError) throw inventoryError;
 

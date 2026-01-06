@@ -11,6 +11,7 @@ import LowStock from "./pages/LowStock";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import TeamSettings from "./pages/TeamSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { User, Session } from '@supabase/supabase-js';
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
           <Route path="/bulk-add" element={<ProtectedRoute><BulkAdd /></ProtectedRoute>} />
           <Route path="/low-stock" element={<ProtectedRoute><LowStock /></ProtectedRoute>} />
+          <Route path="/team-settings" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

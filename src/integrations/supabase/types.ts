@@ -108,6 +108,62 @@ export type Database = {
           },
         ]
       }
+      inventory_teams: {
+        Row: {
+          created_at: string | null
+          id: string
+          inventory_db_name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          inventory_db_name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          inventory_db_name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      join_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          status: Database["public"]["Enums"]["request_status"] | null
+          team_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["request_status"] | null
+          team_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["request_status"] | null
+          team_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -134,6 +190,38 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      team_memberships: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -194,6 +282,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_team_id_by_db_name: { Args: { _db_name: string }; Returns: string }
+      get_user_team_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -201,9 +291,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_owner: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "staff"
+      request_status: "pending" | "approved" | "denied"
+      team_role: "owner" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -332,6 +432,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "staff"],
+      request_status: ["pending", "approved", "denied"],
+      team_role: ["owner", "member"],
     },
   },
 } as const
