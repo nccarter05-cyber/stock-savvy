@@ -1,0 +1,13 @@
+-- Allow team members to view profiles of other team members
+CREATE POLICY "Team members can view teammate profiles"
+ON public.profiles
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1
+    FROM team_memberships tm1
+    JOIN team_memberships tm2 ON tm1.team_id = tm2.team_id
+    WHERE tm1.user_id = auth.uid()
+    AND tm2.user_id = profiles.id
+  )
+);
