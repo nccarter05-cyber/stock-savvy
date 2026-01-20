@@ -114,12 +114,11 @@ const Login = () => {
       return;
     }
 
-    // Check if team with this inventory_db_name already exists
-    const { data: existingTeam } = await supabase
-      .from('inventory_teams')
-      .select('id')
-      .eq('inventory_db_name', inventoryDbName.trim())
-      .maybeSingle();
+    // Check if team with this inventory_db_name already exists using secure function
+    const { data: existingTeamId } = await supabase
+      .rpc('get_team_id_by_name', { team_name: inventoryDbName.trim() });
+    
+    const existingTeam = existingTeamId ? { id: existingTeamId } : null;
 
     const redirectUrl = `${window.location.origin}/dashboard`;
     

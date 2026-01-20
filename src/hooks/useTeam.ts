@@ -286,14 +286,12 @@ export const useTeam = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check if team name already exists
-      const { data: existingTeam } = await supabase
-        .from('inventory_teams')
-        .select('id')
-        .eq('inventory_db_name', inventoryDbName)
-        .maybeSingle();
+      // Check if team name already exists using secure function
+      const { data: teamExists, error: checkError } = await supabase
+        .rpc('team_name_exists', { team_name: inventoryDbName });
 
-      if (existingTeam) {
+      if (checkError) throw checkError;
+      if (teamExists) {
         throw new Error('A team with this name already exists');
       }
 
@@ -345,17 +343,16 @@ export const useTeam = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Find the team by inventory_db_name
-      const { data: targetTeam, error: teamError } = await supabase
-        .from('inventory_teams')
-        .select('id')
-        .eq('inventory_db_name', inventoryDbName)
-        .maybeSingle();
+      // Find the team by inventory_db_name using secure function
+      const { data: teamId, error: teamError } = await supabase
+        .rpc('get_team_id_by_name', { team_name: inventoryDbName });
 
       if (teamError) throw teamError;
-      if (!targetTeam) {
+      if (!teamId) {
         throw new Error('No team found with that name');
       }
+      
+      const targetTeam = { id: teamId };
 
       // Check if user already has a pending request
       const { data: existingRequest } = await supabase
