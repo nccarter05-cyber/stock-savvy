@@ -292,7 +292,12 @@ const TeamSettings = () => {
                   <div className="flex items-center gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium">{member.email || 'Unknown email'}</p>
+                        <p className="font-medium">
+                          {isOwner || member.user_id === currentUserId 
+                            ? (member.email || 'Unknown email')
+                            : (member.restaurant_name || 'Team Member')
+                          }
+                        </p>
                         {member.role === 'owner' && (
                           <Badge variant="default" className="gap-1">
                             <Crown className="h-3 w-3" />
@@ -303,7 +308,7 @@ const TeamSettings = () => {
                           <Badge variant="secondary">You</Badge>
                         )}
                       </div>
-                      {member.restaurant_name && (
+                      {(isOwner || member.user_id === currentUserId) && member.restaurant_name && (
                         <p className="text-sm text-muted-foreground">{member.restaurant_name}</p>
                       )}
                     </div>
