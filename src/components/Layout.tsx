@@ -15,6 +15,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [teamMemberCount, setTeamMemberCount] = useState(0);
   
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -30,9 +31,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch pending requests count for team owners
+  // Fetch pending requests count and team member count
   useEffect(() => {
-    const fetchPendingRequests = async () => {
+    const fetchTeamData = async () => {
       if (!user) return;
 
       // Get user's team
@@ -44,7 +45,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       if (!membership) return;
 
-      // Check if user is owner
+      // Fetch team member count
+      const { count: memberCount } = await supabase
+        .from('team_memberships')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', membership.team_id);
+
+      setTeamMemberCount(memberCount || 0);
+
+      // Check if user is owner for pending requests
       const { data: team } = await supabase
         .from('inventory_teams')
         .select('owner_id')
@@ -63,7 +72,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       setPendingRequestsCount(count || 0);
     };
 
-    fetchPendingRequests();
+    fetchTeamData();
   }, [user]);
 
   const handleLogout = async () => {
@@ -92,7 +101,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/add-item', icon: Plus, label: 'Add Item' },
     { path: '/bulk-add', icon: ListPlus, label: 'Bulk Add' },
-    { path: '/team-settings', icon: Users, label: 'Team', badge: pendingRequestsCount },
+    { path: '/team-settings', icon: Users, label: 'Team', badge: pendingRequestsCount > 0 ? pendingRequestsCount : teamMemberCount, isAlert: pendingRequestsCount > 0 },
   ];
 
   const NavLink = ({ item, onClick }: { item: typeof navItems[0]; onClick?: () => void }) => (
@@ -108,7 +117,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <item.icon className="h-5 w-5" />
       <span>{item.label}</span>
       {item.badge && item.badge > 0 && (
-        <Badge variant="destructive" className="ml-auto h-5 min-w-5 text-xs">
+        <Badge variant={item.isAlert ? "destructive" : "secondary"} className="ml-auto h-5 min-w-5 text-xs">
           {item.badge}
         </Badge>
       )}
@@ -196,7 +205,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <item.icon className="h-4 w-4" />
                 <span className="text-sm">{item.label}</span>
                 {item.badge && item.badge > 0 && (
-                  <Badge variant="destructive" className="h-5 min-w-5 text-xs">
+                  <Badge variant={item.isAlert ? "destructive" : "secondary"} className="h-5 min-w-5 text-xs">
                     {item.badge}
                   </Badge>
                 )}
@@ -222,7 +231,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <div className="relative">
                 <item.icon className="h-5 w-5" />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+                  <span className={`absolute -top-1 -right-1 h-4 w-4 rounded-full text-[10px] flex items-center justify-center ${
+                    item.isAlert ? 'bg-destructive text-destructive-foreground' : 'bg-secondary text-secondary-foreground'
+                  }`}>
                     {item.badge}
                   </span>
                 )}
