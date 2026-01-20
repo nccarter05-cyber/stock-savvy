@@ -283,6 +283,7 @@ export type Database = {
     }
     Functions: {
       get_team_id_by_db_name: { Args: { _db_name: string }; Returns: string }
+      get_team_id_by_name: { Args: { team_name: string }; Returns: string }
       get_user_team_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -299,6 +300,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      team_name_exists: { Args: { team_name: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "staff"
