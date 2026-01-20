@@ -75,13 +75,11 @@ export const useTeam = () => {
 
       if (error) throw error;
 
-      // Get profile info for each member
+      // Get profile info for each member using secure function
       const memberProfiles = await Promise.all(
         (memberships || []).map(async (m) => {
           const { data: profile } = await supabase
-            .from('profiles')
-            .select('email, restaurant_name')
-            .eq('id', m.user_id)
+            .rpc('get_team_member_profile', { member_user_id: m.user_id })
             .maybeSingle();
 
           return {

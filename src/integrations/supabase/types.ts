@@ -284,6 +284,16 @@ export type Database = {
     Functions: {
       get_team_id_by_db_name: { Args: { _db_name: string }; Returns: string }
       get_team_id_by_name: { Args: { team_name: string }; Returns: string }
+      get_team_member_profile: {
+        Args: { member_user_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          restaurant_name: string
+          updated_at: string
+        }[]
+      }
       get_user_team_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
