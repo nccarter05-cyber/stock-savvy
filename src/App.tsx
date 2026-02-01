@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import TeamSettings from "./pages/TeamSettings";
+import CSVUpload from "./pages/CSVUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { User, Session } from '@supabase/supabase-js';
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/bulk-add" element={<ProtectedRoute><BulkAdd /></ProtectedRoute>} />
           <Route path="/low-stock" element={<ProtectedRoute><LowStock /></ProtectedRoute>} />
           <Route path="/team-settings" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
+          <Route path="/csv-upload" element={<ProtectedRoute><CSVUpload /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
