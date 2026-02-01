@@ -1,95 +1,71 @@
 
-
-# CSV Inventory Upload Feature
+# Edit Inventory Item Feature
 
 ## Overview
 
-This feature will add a new page for uploading inventory data via CSV spreadsheet. The system will parse the CSV, match email addresses to user IDs, match vendor names to vendor IDs, and insert/update records in the inventory tables.
+This feature will allow you to click on any inventory item (in both mobile and desktop views) to open an edit page where you can modify all item properties. Changes will save directly to the database.
 
 ## How It Works
 
-1. You upload a CSV file with your inventory data
-2. The system shows you a preview of the data and validates each row
-3. Any issues (like unknown vendors or emails) are highlighted for you to review
-4. You confirm the import and the data is saved to your inventory
-
-## Expected CSV Format
-
-The spreadsheet should include these columns:
-
-| Column | Required | Description |
-|--------|----------|-------------|
-| inventory_name | Yes | Name of the inventory item |
-| vendor_name | Yes | Must match an existing vendor in the system |
-| current_quantity | Yes | Current stock quantity |
-| inventory_maximum | No | Par level / maximum stock |
-| inventory_minimum | No | Low stock alert threshold |
-| email | No | If provided, matches to a team member. If omitted, uses your account |
+1. Click on any inventory item row (desktop) or card (mobile)
+2. You'll be taken to an edit page that looks similar to the Add Item page
+3. The form will be pre-filled with the item's current values
+4. Make your changes and click "Save" to update the database
+5. You'll be redirected back to the inventory list
 
 ## Features
 
-- **File Upload**: Drag-and-drop or click to select CSV file
-- **Data Preview**: See all rows before importing
-- **Validation**: Highlights rows with issues (unknown vendors, invalid data)
-- **Vendor Matching**: Automatically finds vendor IDs from names
-- **User Matching**: Matches email addresses to team members (if provided)
-- **Progress Feedback**: Shows success/failure count after import
-
-## Important Notes
-
-- If an email is provided in the CSV, the system will look up the corresponding team member
-- Due to security rules, you can only import data for your own account (the email column is used for reference/validation only)
-- Vendor names must exactly match existing vendors in your system
-- Inventory items that don't exist will be created automatically
+- **Clickable Items**: Rows in the table and cards on mobile become clickable
+- **Pre-filled Form**: All current values load automatically
+- **Full Editing**: Edit name, category, unit, cost, quantity levels, supplier, and shipment info
+- **Database Sync**: Updates both `inventory_info` and `inventory_quantity` tables
+- **Cancel Option**: Return to inventory without saving changes
 
 ---
 
 ## Technical Details
 
-### Files to Create/Modify
+### Files to Create
 
-1. **New Page: `src/pages/CSVUpload.tsx`**
-   - File input with drag-and-drop support
-   - CSV parsing using native JavaScript (FileReader + split)
-   - Preview table showing parsed data
-   - Validation status for each row
-   - Import button with confirmation
+**1. New Page: `src/pages/EditItem.tsx`**
+- Reuses the same form layout as AddItem.tsx
+- Fetches item data by ID from URL parameter
+- Pre-populates all form fields with existing values
+- Calls new `updateItem` mutation on submit
 
-2. **New Hook: `src/hooks/useCSVUpload.ts`**
-   - Functions to lookup user_id from email via profiles table
-   - Functions to lookup vendor_id from vendor_name
-   - Functions to lookup or create inventory_info records
-   - Batch insert logic for inventory_quantity
+### Files to Modify
 
-3. **Update: `src/App.tsx`**
-   - Add new route `/csv-upload`
+**2. Update Hook: `src/hooks/useInventory.ts`**
+- Add new `updateItemMutation` function
+- Updates `inventory_info` table (name, category, unit, cost, shipment info, vendor)
+- Updates `inventory_quantity` table (current_quantity, min, max)
+- Handles vendor lookup/creation (same logic as addItem)
+- Add `getItemById` function to fetch single item details
 
-4. **Update: `src/components/Layout.tsx`**
-   - Add navigation item for CSV Upload page
+**3. Update Routes: `src/App.tsx`**
+- Add new route: `/edit-item/:id`
+- Route parameter `:id` captures the inventory item ID
 
-### Database Interactions
+**4. Update Inventory Page: `src/pages/Inventory.tsx`**
+- Make table rows clickable with `onClick={() => navigate(`/edit-item/${item.id}`)}`
+- Make mobile cards clickable (excluding the delete button and quantity controls)
+- Add visual hover states to indicate clickability
+- Add an Edit button/icon as alternative to clicking the row
 
-```text
-+----------------+     +------------------+     +--------------------+
-|  CSV Upload    | --> |   Lookup/Match   | --> |   Insert Records   |
-+----------------+     +------------------+     +--------------------+
-        |                     |                         |
-        v                     v                         v
-   Parse rows          profiles table            inventory_info
-   Validate data       vendor_info table         inventory_quantity
-   Show preview        inventory_info table
+### Database Operations
+
+The update will modify two tables:
+
+| Table | Fields Updated |
+|-------|----------------|
+| inventory_info | inventory_name, category, unit, cost_per_unit, last_shipment_date, last_shipment_quantity, vendor_id |
+| inventory_quantity | current_quantity, inventory_maximum, inventory_minimum |
+
+### User Flow Diagram
+
 ```
-
-### RLS Policy Compliance
-
-The current RLS policies allow:
-- Users can INSERT into `inventory_info` and `inventory_quantity` when `auth.uid() = user_id`
-- This means the uploaded data will be inserted under the logged-in user's account
-- The email column in CSV can be used for validation/reference but inserts will use the current user's ID
-
-### Validation Logic
-
-1. **Vendor Matching**: Query `vendor_info` for exact match on `vendor_name` (within the user's accessible vendors)
-2. **Inventory Matching**: Check if `inventory_name` already exists to update vs. create
-3. **Data Validation**: Ensure quantities are valid numbers
-
+Inventory List --> Click Item --> Edit Page --> Save --> Back to List
+       |                              |
+       v                              v
+  (shows all items)          (pre-filled form)
+```
