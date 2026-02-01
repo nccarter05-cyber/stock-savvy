@@ -265,6 +265,103 @@ export const useInventory = () => {
     },
   });
 
+  const updateItemMutation = useMutation({
+    mutationFn: async (updatedItem: {
+      id: string;
+      inventory_name: string;
+      category: string;
+      unit: string;
+      cost_per_unit: number;
+      last_shipment_date: string;
+      last_shipment_quantity: number;
+      vendor_name: string;
+      current_quantity: number;
+      inventory_maximum: number;
+      inventory_minimum: number;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
+      // Handle vendor lookup/creation
+      let vendorId: string | null = null;
+      
+      if (updatedItem.vendor_name) {
+        // Check if vendor exists
+        const { data: existingVendor } = await supabase
+          .from('vendor_info')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('vendor_name', updatedItem.vendor_name)
+          .maybeSingle();
+
+        if (existingVendor) {
+          vendorId = existingVendor.id;
+        } else {
+          // Create new vendor
+          const { data: newVendor, error: vendorError } = await supabase
+            .from('vendor_info')
+            .insert({
+              user_id: user.id,
+              vendor_name: updatedItem.vendor_name,
+            })
+            .select('id')
+            .single();
+
+          if (vendorError) throw vendorError;
+          vendorId = newVendor.id;
+        }
+      }
+
+      // Update inventory_info table
+      const { error: inventoryError } = await supabase
+        .from('inventory_info')
+        .update({
+          inventory_name: updatedItem.inventory_name,
+          category: updatedItem.category,
+          unit: updatedItem.unit,
+          cost_per_unit: updatedItem.cost_per_unit,
+          last_shipment_date: updatedItem.last_shipment_date,
+          last_shipment_quantity: updatedItem.last_shipment_quantity,
+          vendor_id: vendorId,
+        })
+        .eq('id', updatedItem.id);
+
+      if (inventoryError) throw inventoryError;
+
+      // Update inventory_quantity table
+      const { error: quantityError } = await supabase
+        .from('inventory_quantity')
+        .update({
+          current_quantity: updatedItem.current_quantity,
+          inventory_maximum: updatedItem.inventory_maximum,
+          inventory_minimum: updatedItem.inventory_minimum,
+          vendor_id: vendorId,
+        })
+        .eq('inventory_id', updatedItem.id);
+
+      if (quantityError) throw quantityError;
+
+      return updatedItem;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast({
+        title: 'Success',
+        description: 'Item updated successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update item',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const calculateTotalValue = () => {
     return items.reduce((total, item) => {
       const quantity = item.current_quantity || 0;
@@ -285,6 +382,7 @@ export const useInventory = () => {
     isLoading,
     error,
     addItem: addItemMutation.mutate,
+    updateItem: updateItemMutation.mutate,
     deleteItem: deleteItemMutation.mutate,
     updateQuantity: updateQuantityMutation.mutate,
     setQuantity: setQuantityMutation.mutate,
