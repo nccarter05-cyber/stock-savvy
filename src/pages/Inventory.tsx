@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Trash2, Plus, Minus } from 'lucide-react';
+import { Trash2, Plus, Minus, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
 
@@ -50,7 +50,10 @@ const Inventory = () => {
     const isLowStock = quantity <= minLevel;
 
     return (
-      <Card className={isLowStock ? 'border-destructive' : ''}>
+      <Card 
+        className={`cursor-pointer transition-colors hover:bg-accent/50 ${isLowStock ? 'border-destructive' : ''}`}
+        onClick={() => navigate(`/edit-item/${item.id}`)}
+      >
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
@@ -61,14 +64,24 @@ const Inventory = () => {
                 </Badge>
               )}
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => deleteItem(item.id)}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
+            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => navigate(`/edit-item/${item.id}`)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => deleteItem(item.id)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-3 text-sm mb-3">
@@ -96,7 +109,7 @@ const Inventory = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t">
+          <div className="flex items-center justify-between pt-3 border-t" onClick={(e) => e.stopPropagation()}>
             <span className="text-sm text-muted-foreground">
               {item.vendor_name || 'No supplier'}
             </span>
@@ -187,7 +200,11 @@ const Inventory = () => {
                     const minLevel = item.inventory_minimum || 0;
                     
                     return (
-                      <TableRow key={item.id}>
+                      <TableRow 
+                        key={item.id} 
+                        className="cursor-pointer hover:bg-accent/50 transition-colors"
+                        onClick={() => navigate(`/edit-item/${item.id}`)}
+                      >
                         <TableCell className="font-medium">{item.inventory_name}</TableCell>
                         <TableCell>
                           {item.category ? (
@@ -203,7 +220,7 @@ const Inventory = () => {
                             {quantity}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1">
                             <Button
                               variant="outline"
@@ -248,8 +265,15 @@ const Inventory = () => {
                           }
                         </TableCell>
                         <TableCell>{item.vendor_name || '-'}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => navigate(`/edit-item/${item.id}`)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             <Button 
                               variant="ghost" 
                               size="icon"

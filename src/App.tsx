@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import AddItem from "./pages/AddItem";
+import EditItem from "./pages/EditItem";
 import BulkAdd from "./pages/BulkAdd";
 import LowStock from "./pages/LowStock";
 import NotFound from "./pages/NotFound";
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
           <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+          <Route path="/edit-item/:id" element={<ProtectedRoute><EditItem /></ProtectedRoute>} />
           <Route path="/bulk-add" element={<ProtectedRoute><BulkAdd /></ProtectedRoute>} />
           <Route path="/low-stock" element={<ProtectedRoute><LowStock /></ProtectedRoute>} />
           <Route path="/team-settings" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
