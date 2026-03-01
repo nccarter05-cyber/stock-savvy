@@ -284,13 +284,46 @@ const TeamSettings = () => {
         {/* Team Members */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <CardTitle className="text-lg">Team Members</CardTitle>
-              <Badge variant="outline">{members.length}</Badge>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                <CardTitle className="text-lg">Team Members</CardTitle>
+                <Badge variant="outline">{members.length}</Badge>
+              </div>
+              {isOwner && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-1">
+                      <UserPlus className="h-4 w-4" />
+                      Add Team Member
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Team Member</DialogTitle>
+                      <DialogDescription>
+                        Share your team name with new members. They can use it to request access from the Team Settings page.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-2">
+                        <Label>Your Team Name</Label>
+                        <div className="flex gap-2">
+                          <Input value={team.inventory_db_name} readOnly />
+                          <Button variant="outline" size="icon" onClick={handleCopyTeamName}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          New members should go to Team Settings, select "Join Team", and enter this name to request access. You'll be able to approve or deny their request.
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
             <CardDescription>People with access to the shared inventory</CardDescription>
-          </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {members.map((member) => (
