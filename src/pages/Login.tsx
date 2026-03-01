@@ -26,7 +26,9 @@ const Login = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
+        if (event === 'PASSWORD_RECOVERY') {
+          navigate('/reset-password');
+        } else if (session?.user) {
           navigate('/dashboard');
         }
       }
