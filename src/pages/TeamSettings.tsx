@@ -324,6 +324,7 @@ const TeamSettings = () => {
               )}
             </div>
             <CardDescription>People with access to the shared inventory</CardDescription>
+          </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {members.map((member) => (
