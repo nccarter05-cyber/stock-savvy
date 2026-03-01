@@ -16,19 +16,26 @@ const ResetPassword = () => {
   const [isResetMode, setIsResetMode] = useState(false);
 
   useEffect(() => {
-    // Check if this is a password reset callback (user clicked email link)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsResetMode(true);
+        }
+      }
+    );
+
+    // Also check URL params/hash as fallback
     const accessToken = searchParams.get('access_token');
     const type = searchParams.get('type');
-    
     if (type === 'recovery' || accessToken) {
       setIsResetMode(true);
     }
-
-    // Also check for hash fragments (Supabase sometimes uses these)
     const hash = window.location.hash;
     if (hash.includes('type=recovery')) {
       setIsResetMode(true);
     }
+
+    return () => subscription.unsubscribe();
   }, [searchParams]);
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
