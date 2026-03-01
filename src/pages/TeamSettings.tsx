@@ -29,10 +29,17 @@ const TeamSettings = () => {
     isRequestingToJoin,
   } = useTeam();
   
+  const { toast } = useToast();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [newTeamName, setNewTeamName] = useState('');
   const [joinTeamName, setJoinTeamName] = useState('');
 
+  const handleCopyTeamName = () => {
+    if (team?.inventory_db_name) {
+      navigator.clipboard.writeText(team.inventory_db_name);
+      toast({ title: 'Copied!', description: 'Team name copied to clipboard. Share it with your team members.' });
+    }
+  };
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setCurrentUserId(user?.id || null);
