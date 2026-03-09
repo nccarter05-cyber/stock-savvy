@@ -287,7 +287,7 @@ export const useInventory = () => {
       // Handle vendor lookup/creation
       let vendorId: string | null = null;
       
-      if (updatedItem.vendor_name) {
+      if (updatedItem.vendor_name && updatedItem.vendor_name.trim()) {
         // Check if vendor exists
         const { data: existingVendor } = await supabase
           .from('vendor_info')
