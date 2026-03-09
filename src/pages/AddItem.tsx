@@ -91,7 +91,7 @@ const AddItem = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="unit">Unit</Label>
-                  <Select value={unit} onValueChange={setUnit} required>
+                  <Select value={unit} onValueChange={setUnit}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
