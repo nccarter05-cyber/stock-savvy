@@ -148,9 +148,9 @@ export const useInventory = () => {
         .insert({
           inventory_id: inventoryItem.id,
           user_id: user.id,
-          current_quantity: newItem.current_quantity,
-          inventory_maximum: newItem.inventory_maximum,
-          inventory_minimum: newItem.inventory_minimum,
+          current_quantity: newItem.current_quantity ?? 0,
+          inventory_maximum: newItem.inventory_maximum ?? null,
+          inventory_minimum: newItem.inventory_minimum ?? null,
           vendor_id: vendorId,
         });
 
