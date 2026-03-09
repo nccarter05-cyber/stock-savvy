@@ -95,10 +95,9 @@ export const useInventory = () => {
         throw new Error('Not authenticated');
       }
 
-      // First, create or get vendor
       let vendorId: string | null = null;
       
-      if (newItem.vendor_name) {
+      if (newItem.vendor_name && newItem.vendor_name.trim()) {
         // Check if vendor exists
         const { data: existingVendor } = await supabase
           .from('vendor_info')
