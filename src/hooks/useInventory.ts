@@ -130,11 +130,11 @@ export const useInventory = () => {
         .insert({
           user_id: user.id,
           inventory_name: newItem.inventory_name,
-          category: newItem.category,
-          unit: newItem.unit,
-          cost_per_unit: newItem.cost_per_unit,
-          last_shipment_date: newItem.last_shipment_date,
-          last_shipment_quantity: newItem.last_shipment_quantity,
+          category: newItem.category || null,
+          unit: newItem.unit || null,
+          cost_per_unit: newItem.cost_per_unit ?? null,
+          last_shipment_date: newItem.last_shipment_date || null,
+          last_shipment_quantity: newItem.last_shipment_quantity ?? null,
           vendor_id: vendorId,
         })
         .select('id')
