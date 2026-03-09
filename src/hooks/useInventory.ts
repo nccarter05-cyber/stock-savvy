@@ -334,9 +334,9 @@ export const useInventory = () => {
       const { error: quantityError } = await supabase
         .from('inventory_quantity')
         .update({
-          current_quantity: updatedItem.current_quantity,
-          inventory_maximum: updatedItem.inventory_maximum,
-          inventory_minimum: updatedItem.inventory_minimum,
+          current_quantity: updatedItem.current_quantity ?? 0,
+          inventory_maximum: updatedItem.inventory_maximum ?? null,
+          inventory_minimum: updatedItem.inventory_minimum ?? null,
           vendor_id: vendorId,
         })
         .eq('inventory_id', updatedItem.id);

@@ -136,7 +136,7 @@ const AddItem = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentQuantity" className="text-sm">Qty Received</Label>
-                  <Input id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0" required />
+                  <Input id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0" />
                 </div>
               </div>
 
