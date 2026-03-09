@@ -44,10 +44,8 @@ const BulkAdd = () => {
   });
 
   const handleAddItem = () => {
-    if (!currentItem.name || !currentItem.category || !currentItem.quantity || !currentItem.unit || 
-        !currentItem.parLevel || !currentItem.lowStockThreshold || !currentItem.costPerUnit || 
-        !currentItem.lastShipmentDate || !currentItem.lastShipmentQuantity || !currentItem.supplier) {
-      toast.error('Please fill in all fields');
+    if (!currentItem.name.trim()) {
+      toast.error('Please enter an item name');
       return;
     }
 
