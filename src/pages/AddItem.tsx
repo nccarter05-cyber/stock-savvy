@@ -120,7 +120,7 @@ const AddItem = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="cost">Cost Per Unit</Label>
-                <Input id="cost" name="cost" type="number" step="0.01" placeholder="0.00" required />
+                <Input id="cost" name="cost" type="number" step="0.01" placeholder="0.00" />
               </div>
 
               <div className="space-y-2">
