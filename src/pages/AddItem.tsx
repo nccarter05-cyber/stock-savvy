@@ -21,17 +21,24 @@ const AddItem = () => {
 
     const formData = new FormData(e.currentTarget);
 
+    const costVal = parseFloat(formData.get("cost") as string);
+    const qtyVal = parseFloat(formData.get("quantity") as string);
+    const parVal = parseFloat(formData.get("parLevel") as string);
+    const lowVal = parseFloat(formData.get("lowStockThreshold") as string);
+    const shipQtyVal = parseFloat(formData.get("lastShipmentQuantity") as string);
+    const shipDate = formData.get("lastShipmentDate") as string;
+
     const newItem = {
       inventory_name: formData.get("name") as string,
-      category: category,
-      unit: unit,
-      cost_per_unit: parseFloat(formData.get("cost") as string),
-      last_shipment_date: formData.get("lastShipmentDate") as string,
-      last_shipment_quantity: parseFloat(formData.get("lastShipmentQuantity") as string),
-      vendor_name: formData.get("supplier") as string,
-      current_quantity: parseFloat(formData.get("quantity") as string),
-      inventory_maximum: parseFloat(formData.get("parLevel") as string),
-      inventory_minimum: parseFloat(formData.get("lowStockThreshold") as string),
+      category: category || null,
+      unit: unit || null,
+      cost_per_unit: isNaN(costVal) ? null : costVal,
+      last_shipment_date: shipDate || null,
+      last_shipment_quantity: isNaN(shipQtyVal) ? null : shipQtyVal,
+      vendor_name: (formData.get("supplier") as string) || null,
+      current_quantity: isNaN(qtyVal) ? 0 : qtyVal,
+      inventory_maximum: isNaN(parVal) ? null : parVal,
+      inventory_minimum: isNaN(lowVal) ? null : lowVal,
     };
 
     addItem(newItem, {
@@ -62,7 +69,7 @@ const AddItem = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory} required>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -79,12 +86,12 @@ const AddItem = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantity</Label>
-                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" required />
+                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="unit">Unit</Label>
-                  <Select value={unit} onValueChange={setUnit} required>
+                  <Select value={unit} onValueChange={setUnit}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -102,34 +109,34 @@ const AddItem = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="parLevel">Par Level</Label>
-                  <Input id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0" required />
+                  <Input id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0" />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
-                  <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" required />
+                  <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="cost">Cost Per Unit</Label>
-                <Input id="cost" name="cost" type="number" step="0.01" placeholder="0.00" required />
+                <Input id="cost" name="cost" type="number" step="0.01" placeholder="0.00" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input id="supplier" name="supplier" placeholder="Enter supplier name" required />
+                <Input id="supplier" name="supplier" placeholder="Enter supplier name" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentDate" className="text-sm">Last Shipment</Label>
-                  <Input id="lastShipmentDate" name="lastShipmentDate" type="date" required />
+                  <Input id="lastShipmentDate" name="lastShipmentDate" type="date" />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentQuantity" className="text-sm">Qty Received</Label>
-                  <Input id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0" required />
+                  <Input id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0" />
                 </div>
               </div>
 

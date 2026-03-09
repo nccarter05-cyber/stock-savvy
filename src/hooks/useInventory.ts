@@ -79,15 +79,15 @@ export const useInventory = () => {
   const addItemMutation = useMutation({
     mutationFn: async (newItem: {
       inventory_name: string;
-      category: string;
-      unit: string;
-      cost_per_unit: number;
-      last_shipment_date: string;
-      last_shipment_quantity: number;
-      vendor_name: string;
-      current_quantity: number;
-      inventory_maximum: number;
-      inventory_minimum: number;
+      category?: string | null;
+      unit?: string | null;
+      cost_per_unit?: number | null;
+      last_shipment_date?: string | null;
+      last_shipment_quantity?: number | null;
+      vendor_name?: string | null;
+      current_quantity?: number;
+      inventory_maximum?: number | null;
+      inventory_minimum?: number | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -95,10 +95,9 @@ export const useInventory = () => {
         throw new Error('Not authenticated');
       }
 
-      // First, create or get vendor
       let vendorId: string | null = null;
       
-      if (newItem.vendor_name) {
+      if (newItem.vendor_name && newItem.vendor_name.trim()) {
         // Check if vendor exists
         const { data: existingVendor } = await supabase
           .from('vendor_info')
@@ -131,11 +130,11 @@ export const useInventory = () => {
         .insert({
           user_id: user.id,
           inventory_name: newItem.inventory_name,
-          category: newItem.category,
-          unit: newItem.unit,
-          cost_per_unit: newItem.cost_per_unit,
-          last_shipment_date: newItem.last_shipment_date,
-          last_shipment_quantity: newItem.last_shipment_quantity,
+          category: newItem.category || null,
+          unit: newItem.unit || null,
+          cost_per_unit: newItem.cost_per_unit ?? null,
+          last_shipment_date: newItem.last_shipment_date || null,
+          last_shipment_quantity: newItem.last_shipment_quantity ?? null,
           vendor_id: vendorId,
         })
         .select('id')
@@ -149,9 +148,9 @@ export const useInventory = () => {
         .insert({
           inventory_id: inventoryItem.id,
           user_id: user.id,
-          current_quantity: newItem.current_quantity,
-          inventory_maximum: newItem.inventory_maximum,
-          inventory_minimum: newItem.inventory_minimum,
+          current_quantity: newItem.current_quantity ?? 0,
+          inventory_maximum: newItem.inventory_maximum ?? null,
+          inventory_minimum: newItem.inventory_minimum ?? null,
           vendor_id: vendorId,
         });
 
@@ -269,15 +268,15 @@ export const useInventory = () => {
     mutationFn: async (updatedItem: {
       id: string;
       inventory_name: string;
-      category: string;
-      unit: string;
-      cost_per_unit: number;
-      last_shipment_date: string;
-      last_shipment_quantity: number;
-      vendor_name: string;
-      current_quantity: number;
-      inventory_maximum: number;
-      inventory_minimum: number;
+      category?: string | null;
+      unit?: string | null;
+      cost_per_unit?: number | null;
+      last_shipment_date?: string | null;
+      last_shipment_quantity?: number | null;
+      vendor_name?: string | null;
+      current_quantity?: number;
+      inventory_maximum?: number | null;
+      inventory_minimum?: number | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -288,7 +287,7 @@ export const useInventory = () => {
       // Handle vendor lookup/creation
       let vendorId: string | null = null;
       
-      if (updatedItem.vendor_name) {
+      if (updatedItem.vendor_name && updatedItem.vendor_name.trim()) {
         // Check if vendor exists
         const { data: existingVendor } = await supabase
           .from('vendor_info')
@@ -320,11 +319,11 @@ export const useInventory = () => {
         .from('inventory_info')
         .update({
           inventory_name: updatedItem.inventory_name,
-          category: updatedItem.category,
-          unit: updatedItem.unit,
-          cost_per_unit: updatedItem.cost_per_unit,
-          last_shipment_date: updatedItem.last_shipment_date,
-          last_shipment_quantity: updatedItem.last_shipment_quantity,
+          category: updatedItem.category || null,
+          unit: updatedItem.unit || null,
+          cost_per_unit: updatedItem.cost_per_unit ?? null,
+          last_shipment_date: updatedItem.last_shipment_date || null,
+          last_shipment_quantity: updatedItem.last_shipment_quantity ?? null,
           vendor_id: vendorId,
         })
         .eq('id', updatedItem.id);
@@ -335,9 +334,9 @@ export const useInventory = () => {
       const { error: quantityError } = await supabase
         .from('inventory_quantity')
         .update({
-          current_quantity: updatedItem.current_quantity,
-          inventory_maximum: updatedItem.inventory_maximum,
-          inventory_minimum: updatedItem.inventory_minimum,
+          current_quantity: updatedItem.current_quantity ?? 0,
+          inventory_maximum: updatedItem.inventory_maximum ?? null,
+          inventory_minimum: updatedItem.inventory_minimum ?? null,
           vendor_id: vendorId,
         })
         .eq('inventory_id', updatedItem.id);

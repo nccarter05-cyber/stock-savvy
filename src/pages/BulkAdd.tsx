@@ -44,10 +44,8 @@ const BulkAdd = () => {
   });
 
   const handleAddItem = () => {
-    if (!currentItem.name || !currentItem.category || !currentItem.quantity || !currentItem.unit || 
-        !currentItem.parLevel || !currentItem.lowStockThreshold || !currentItem.costPerUnit || 
-        !currentItem.lastShipmentDate || !currentItem.lastShipmentQuantity || !currentItem.supplier) {
-      toast.error('Please fill in all fields');
+    if (!currentItem.name.trim()) {
+      toast.error('Please enter an item name');
       return;
     }
 
@@ -100,15 +98,15 @@ const BulkAdd = () => {
         await new Promise((resolve, reject) => {
           addItem({
             inventory_name: item.name,
-            category: item.category,
-            unit: item.unit,
-            cost_per_unit: parseFloat(item.costPerUnit),
-            last_shipment_date: item.lastShipmentDate,
-            last_shipment_quantity: parseFloat(item.lastShipmentQuantity),
-            vendor_name: item.supplier,
-            current_quantity: parseFloat(item.quantity),
-            inventory_maximum: parseFloat(item.parLevel),
-            inventory_minimum: parseFloat(item.lowStockThreshold),
+            category: item.category || null,
+            unit: item.unit || null,
+            cost_per_unit: item.costPerUnit ? parseFloat(item.costPerUnit) : null,
+            last_shipment_date: item.lastShipmentDate || null,
+            last_shipment_quantity: item.lastShipmentQuantity ? parseFloat(item.lastShipmentQuantity) : null,
+            vendor_name: item.supplier || null,
+            current_quantity: item.quantity ? parseFloat(item.quantity) : 0,
+            inventory_maximum: item.parLevel ? parseFloat(item.parLevel) : null,
+            inventory_minimum: item.lowStockThreshold ? parseFloat(item.lowStockThreshold) : null,
           }, {
             onSuccess: () => {
               successCount++;
