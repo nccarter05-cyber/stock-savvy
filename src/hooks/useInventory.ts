@@ -319,11 +319,11 @@ export const useInventory = () => {
         .from('inventory_info')
         .update({
           inventory_name: updatedItem.inventory_name,
-          category: updatedItem.category,
-          unit: updatedItem.unit,
-          cost_per_unit: updatedItem.cost_per_unit,
-          last_shipment_date: updatedItem.last_shipment_date,
-          last_shipment_quantity: updatedItem.last_shipment_quantity,
+          category: updatedItem.category || null,
+          unit: updatedItem.unit || null,
+          cost_per_unit: updatedItem.cost_per_unit ?? null,
+          last_shipment_date: updatedItem.last_shipment_date || null,
+          last_shipment_quantity: updatedItem.last_shipment_quantity ?? null,
           vendor_id: vendorId,
         })
         .eq('id', updatedItem.id);
