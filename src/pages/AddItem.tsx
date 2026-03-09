@@ -125,7 +125,7 @@ const AddItem = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input id="supplier" name="supplier" placeholder="Enter supplier name" required />
+                <Input id="supplier" name="supplier" placeholder="Enter supplier name" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
