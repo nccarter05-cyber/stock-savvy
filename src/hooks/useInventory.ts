@@ -79,15 +79,15 @@ export const useInventory = () => {
   const addItemMutation = useMutation({
     mutationFn: async (newItem: {
       inventory_name: string;
-      category: string;
-      unit: string;
-      cost_per_unit: number;
-      last_shipment_date: string;
-      last_shipment_quantity: number;
-      vendor_name: string;
-      current_quantity: number;
-      inventory_maximum: number;
-      inventory_minimum: number;
+      category?: string | null;
+      unit?: string | null;
+      cost_per_unit?: number | null;
+      last_shipment_date?: string | null;
+      last_shipment_quantity?: number | null;
+      vendor_name?: string | null;
+      current_quantity?: number;
+      inventory_maximum?: number | null;
+      inventory_minimum?: number | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
