@@ -1,71 +1,61 @@
 
-# Edit Inventory Item Feature
 
-## Overview
+# Admin Account for Managing Teams & Inventory
 
-This feature will allow you to click on any inventory item (in both mobile and desktop views) to open an edit page where you can modify all item properties. Changes will save directly to the database.
+## Current State
+- The `user_roles` table already has an `app_role` enum with `admin`, `moderator`, and `user` values
+- The `has_role()` security definer function exists to check roles
+- Team owners can only manage their own team; there's no cross-team admin capability
+- Role assignment happens automatically via the `handle_new_user()` trigger (assigns `staff` role)
 
-## How It Works
+## What Needs to Change
 
-1. Click on any inventory item row (desktop) or card (mobile)
-2. You'll be taken to an edit page that looks similar to the Add Item page
-3. The form will be pre-filled with the item's current values
-4. Make your changes and click "Save" to update the database
-5. You'll be redirected back to the inventory list
+### 1. Database: RLS Policy Updates
+Add admin-override policies to key tables so admins can read/write across all teams:
 
-## Features
+- **`inventory_teams`**: Add SELECT/UPDATE/DELETE policies for admins (currently admins can't edit or delete teams)
+- **`inventory_info`**: Add SELECT/INSERT/UPDATE/DELETE admin policies
+- **`inventory_quantity`**: Add SELECT/INSERT/UPDATE/DELETE admin policies
+- **`vendor_info`**: Add SELECT/INSERT/UPDATE/DELETE admin policies
+- **`team_memberships`**: Already has admin UPDATE policy; add admin DELETE/INSERT overrides
+- **`profiles`**: Add admin SELECT-all policy
 
-- **Clickable Items**: Rows in the table and cards on mobile become clickable
-- **Pre-filled Form**: All current values load automatically
-- **Full Editing**: Edit name, category, unit, cost, quantity levels, supplier, and shipment info
-- **Database Sync**: Updates both `inventory_info` and `inventory_quantity` tables
-- **Cancel Option**: Return to inventory without saving changes
+All policies use `has_role(auth.uid(), 'admin')` to avoid recursive RLS issues.
 
----
+### 2. Database: Grant Admin Role
+Manually assign the `admin` role to the desired user via an INSERT into `user_roles` (since direct inserts are blocked by RLS, this requires a migration or service-role query).
 
-## Technical Details
+### 3. New Admin Dashboard Page (`src/pages/AdminDashboard.tsx`)
+- List all teams with owner info, member count, and inventory count
+- Actions per team: edit team name, delete team (cascades memberships), view/edit inventory
+- Drill-down to view/edit any team's full inventory
+- Search and filter across all teams
 
-### Files to Create
+### 4. Admin Route Guard (`AdminRoute` component)
+- New wrapper component that checks `has_role` for the current user
+- Queries `user_roles` table on mount; redirects non-admins away
+- Used to protect `/admin` routes
 
-**1. New Page: `src/pages/EditItem.tsx`**
-- Reuses the same form layout as AddItem.tsx
-- Fetches item data by ID from URL parameter
-- Pre-populates all form fields with existing values
-- Calls new `updateItem` mutation on submit
+### 5. Navigation Updates (`src/components/Layout.tsx`)
+- Add "Admin" nav link visible only to users with the admin role
+- Use a `useIsAdmin` hook that queries `user_roles`
 
-### Files to Modify
+### 6. New Hook: `useAdmin.ts`
+- `useIsAdmin()` — returns boolean, queries user_roles
+- `useAdminTeams()` — fetches all teams with member/inventory counts
+- `useAdminInventory(teamId)` — fetches inventory for any team
+- Mutations: `deleteTeam`, `updateTeam`, `deleteInventoryItem`, `updateInventoryItem`
 
-**2. Update Hook: `src/hooks/useInventory.ts`**
-- Add new `updateItemMutation` function
-- Updates `inventory_info` table (name, category, unit, cost, shipment info, vendor)
-- Updates `inventory_quantity` table (current_quantity, min, max)
-- Handles vendor lookup/creation (same logic as addItem)
-- Add `getItemById` function to fetch single item details
+### 7. Files to Create/Modify
 
-**3. Update Routes: `src/App.tsx`**
-- Add new route: `/edit-item/:id`
-- Route parameter `:id` captures the inventory item ID
+| File | Action |
+|------|--------|
+| Migration SQL | Add admin RLS policies to 6 tables + admin role insert |
+| `src/hooks/useAdmin.ts` | New — admin data hooks |
+| `src/pages/AdminDashboard.tsx` | New — admin management UI |
+| `src/App.tsx` | Add `/admin` route with AdminRoute guard |
+| `src/components/Layout.tsx` | Add admin nav link |
 
-**4. Update Inventory Page: `src/pages/Inventory.tsx`**
-- Make table rows clickable with `onClick={() => navigate(`/edit-item/${item.id}`)}`
-- Make mobile cards clickable (excluding the delete button and quantity controls)
-- Add visual hover states to indicate clickability
-- Add an Edit button/icon as alternative to clicking the row
+### Summary
+This is a moderate-sized feature: ~1 migration with ~12 new RLS policies, 2 new files (hook + page), and minor updates to routing and navigation. The existing `has_role` function and `user_roles` table provide the foundation — no new tables needed.
 
-### Database Operations
-
-The update will modify two tables:
-
-| Table | Fields Updated |
-|-------|----------------|
-| inventory_info | inventory_name, category, unit, cost_per_unit, last_shipment_date, last_shipment_quantity, vendor_id |
-| inventory_quantity | current_quantity, inventory_maximum, inventory_minimum |
-
-### User Flow Diagram
-
-```
-Inventory List --> Click Item --> Edit Page --> Save --> Back to List
-       |                              |
-       v                              v
-  (shows all items)          (pre-filled form)
-```
