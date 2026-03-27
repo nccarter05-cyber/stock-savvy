@@ -1,21 +1,49 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useIsAdmin = () => {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authResolved, setAuthResolved] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!mounted) return;
+      setUserId(user?.id ?? null);
+      setAuthResolved(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id ?? null);
+      setAuthResolved(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return useQuery({
-    queryKey: ['isAdmin'],
+    queryKey: ['isAdmin', userId],
+    enabled: authResolved && !!userId,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-      
-      const { data } = await supabase
+      if (!userId) return false;
+
+      const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('role', 'admin')
         .maybeSingle();
-      
+
+      if (error) throw error;
       return !!data;
     },
   });
