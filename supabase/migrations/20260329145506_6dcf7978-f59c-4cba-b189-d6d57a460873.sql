@@ -1,0 +1,1 @@
+DROP POLICY "Users can insert own membership" ON public.team_memberships;
