@@ -1,61 +1,33 @@
 
 
-# Admin Account for Managing Teams & Inventory
+# Fix: Privilege Escalation on team_memberships
 
-## Current State
-- The `user_roles` table already has an `app_role` enum with `admin`, `moderator`, and `user` values
-- The `has_role()` security definer function exists to check roles
-- Team owners can only manage their own team; there's no cross-team admin capability
-- Role assignment happens automatically via the `handle_new_user()` trigger (assigns `staff` role)
+## Problem
+The RLS policy "Users can insert own membership" only checks `auth.uid() = user_id`, allowing any authenticated user to add themselves to any team with any role (including 'owner'), bypassing the join request workflow entirely.
 
-## What Needs to Change
+## Root Cause
+Three code paths insert into `team_memberships`:
+1. **Signup** (Login.tsx) — user creates a team and adds themselves as owner
+2. **Create team** (useTeam.ts) — same as above
+3. **Approve request** (useTeam.ts) — team owner adds a new member after approving a join request
 
-### 1. Database: RLS Policy Updates
-Add admin-override policies to key tables so admins can read/write across all teams:
+Paths 1 and 2 are already covered by "Team owners can insert memberships" (since the user just created the team and is the owner). Path 3 is also covered by that same policy. The "Users can insert own membership" policy is redundant and dangerous.
 
-- **`inventory_teams`**: Add SELECT/UPDATE/DELETE policies for admins (currently admins can't edit or delete teams)
-- **`inventory_info`**: Add SELECT/INSERT/UPDATE/DELETE admin policies
-- **`inventory_quantity`**: Add SELECT/INSERT/UPDATE/DELETE admin policies
-- **`vendor_info`**: Add SELECT/INSERT/UPDATE/DELETE admin policies
-- **`team_memberships`**: Already has admin UPDATE policy; add admin DELETE/INSERT overrides
-- **`profiles`**: Add admin SELECT-all policy
+## Plan
 
-All policies use `has_role(auth.uid(), 'admin')` to avoid recursive RLS issues.
+### 1. Database migration (single SQL statement)
+- **Drop** the policy `"Users can insert own membership"` on `team_memberships`
+- No replacement needed — the existing "Team owners can insert memberships" and "Admins can insert memberships" policies cover all legitimate use cases
 
-### 2. Database: Grant Admin Role
-Manually assign the `admin` role to the desired user via an INSERT into `user_roles` (since direct inserts are blocked by RLS, this requires a migration or service-role query).
+```sql
+DROP POLICY "Users can insert own membership" ON public.team_memberships;
+```
 
-### 3. New Admin Dashboard Page (`src/pages/AdminDashboard.tsx`)
-- List all teams with owner info, member count, and inventory count
-- Actions per team: edit team name, delete team (cascades memberships), view/edit inventory
-- Drill-down to view/edit any team's full inventory
-- Search and filter across all teams
+### 2. No code changes required
+All three insert paths already work through the team-owner or admin policies. No frontend changes needed.
 
-### 4. Admin Route Guard (`AdminRoute` component)
-- New wrapper component that checks `has_role` for the current user
-- Queries `user_roles` table on mount; redirects non-admins away
-- Used to protect `/admin` routes
-
-### 5. Navigation Updates (`src/components/Layout.tsx`)
-- Add "Admin" nav link visible only to users with the admin role
-- Use a `useIsAdmin` hook that queries `user_roles`
-
-### 6. New Hook: `useAdmin.ts`
-- `useIsAdmin()` — returns boolean, queries user_roles
-- `useAdminTeams()` — fetches all teams with member/inventory counts
-- `useAdminInventory(teamId)` — fetches inventory for any team
-- Mutations: `deleteTeam`, `updateTeam`, `deleteInventoryItem`, `updateInventoryItem`
-
-### 7. Files to Create/Modify
-
-| File | Action |
+## Files Changed
+| File | Change |
 |------|--------|
-| Migration SQL | Add admin RLS policies to 6 tables + admin role insert |
-| `src/hooks/useAdmin.ts` | New — admin data hooks |
-| `src/pages/AdminDashboard.tsx` | New — admin management UI |
-| `src/App.tsx` | Add `/admin` route with AdminRoute guard |
-| `src/components/Layout.tsx` | Add admin nav link |
-
-### Summary
-This is a moderate-sized feature: ~1 migration with ~12 new RLS policies, 2 new files (hook + page), and minor updates to routing and navigation. The existing `has_role` function and `user_roles` table provide the foundation — no new tables needed.
+| New migration SQL | Drop the one policy |
 
