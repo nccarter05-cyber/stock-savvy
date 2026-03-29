@@ -1,33 +1,18 @@
 
 
-# Fix: Privilege Escalation on team_memberships
+# Add Admin Role to Simplestockadmin@gmail.com
 
-## Problem
-The RLS policy "Users can insert own membership" only checks `auth.uid() = user_id`, allowing any authenticated user to add themselves to any team with any role (including 'owner'), bypassing the join request workflow entirely.
+## What
+Insert an `admin` role for user `simplestockadmin@gmail.com` (ID: `a4ee65b1-07c2-4919-ab15-b2ace0d446a6`) into the `user_roles` table. The user currently only has the `staff` role.
 
-## Root Cause
-Three code paths insert into `team_memberships`:
-1. **Signup** (Login.tsx) — user creates a team and adds themselves as owner
-2. **Create team** (useTeam.ts) — same as above
-3. **Approve request** (useTeam.ts) — team owner adds a new member after approving a join request
-
-Paths 1 and 2 are already covered by "Team owners can insert memberships" (since the user just created the team and is the owner). Path 3 is also covered by that same policy. The "Users can insert own membership" policy is redundant and dangerous.
-
-## Plan
-
-### 1. Database migration (single SQL statement)
-- **Drop** the policy `"Users can insert own membership"` on `team_memberships`
-- No replacement needed — the existing "Team owners can insert memberships" and "Admins can insert memberships" policies cover all legitimate use cases
+## How
+A single database migration:
 
 ```sql
-DROP POLICY "Users can insert own membership" ON public.team_memberships;
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('a4ee65b1-07c2-4919-ab15-b2ace0d446a6', 'admin')
+ON CONFLICT (user_id, role) DO NOTHING;
 ```
 
-### 2. No code changes required
-All three insert paths already work through the team-owner or admin policies. No frontend changes needed.
-
-## Files Changed
-| File | Change |
-|------|--------|
-| New migration SQL | Drop the one policy |
+No code changes needed. After migration, the user will see the admin shield icon in the navbar and have access to the Admin Dashboard.
 
