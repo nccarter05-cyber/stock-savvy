@@ -15,35 +15,12 @@ import ResetPassword from "./pages/ResetPassword";
 import TeamSettings from "./pages/TeamSettings";
 import CSVUpload from "./pages/CSVUpload";
 import AdminDashboard from "./pages/AdminDashboard";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import type { User, Session } from '@supabase/supabase-js';
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { user, session, loading } = useAuth();
 
   if (loading) {
     return (
@@ -62,27 +39,29 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-          <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
-          <Route path="/edit-item/:id" element={<ProtectedRoute><EditItem /></ProtectedRoute>} />
-          <Route path="/bulk-add" element={<ProtectedRoute><BulkAdd /></ProtectedRoute>} />
-          <Route path="/low-stock" element={<ProtectedRoute><LowStock /></ProtectedRoute>} />
-          <Route path="/team-settings" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
-          <Route path="/csv-upload" element={<ProtectedRoute><CSVUpload /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+            <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+            <Route path="/edit-item/:id" element={<ProtectedRoute><EditItem /></ProtectedRoute>} />
+            <Route path="/bulk-add" element={<ProtectedRoute><BulkAdd /></ProtectedRoute>} />
+            <Route path="/low-stock" element={<ProtectedRoute><LowStock /></ProtectedRoute>} />
+            <Route path="/team-settings" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
+            <Route path="/csv-upload" element={<ProtectedRoute><CSVUpload /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
