@@ -189,7 +189,6 @@ const EditItem = () => {
                     placeholder="0" 
                     value={formValues.parLevel}
                     onChange={(e) => setFormValues(prev => ({ ...prev, parLevel: e.target.value }))}
-                    required 
                   />
                 </div>
 
