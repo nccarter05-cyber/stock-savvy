@@ -55,18 +55,25 @@ const EditItem = () => {
 
     const formData = new FormData(e.currentTarget);
 
+    const costVal = parseFloat(formData.get("cost") as string);
+    const qtyVal = parseFloat(formData.get("quantity") as string);
+    const parVal = parseFloat(formData.get("parLevel") as string);
+    const lowVal = parseFloat(formData.get("lowStockThreshold") as string);
+    const shipQtyVal = parseFloat(formData.get("lastShipmentQuantity") as string);
+    const shipDate = formData.get("lastShipmentDate") as string;
+
     const updatedItem = {
       id,
       inventory_name: formData.get("name") as string,
-      category: category,
-      unit: unit,
-      cost_per_unit: parseFloat(formData.get("cost") as string),
-      last_shipment_date: formData.get("lastShipmentDate") as string,
-      last_shipment_quantity: parseFloat(formData.get("lastShipmentQuantity") as string),
-      vendor_name: formData.get("supplier") as string,
-      current_quantity: parseFloat(formData.get("quantity") as string),
-      inventory_maximum: parseFloat(formData.get("parLevel") as string),
-      inventory_minimum: parseFloat(formData.get("lowStockThreshold") as string),
+      category: category || null,
+      unit: unit || null,
+      cost_per_unit: isNaN(costVal) ? null : costVal,
+      last_shipment_date: shipDate || null,
+      last_shipment_quantity: isNaN(shipQtyVal) ? null : shipQtyVal,
+      vendor_name: (formData.get("supplier") as string) || null,
+      current_quantity: isNaN(qtyVal) ? 0 : qtyVal,
+      inventory_maximum: isNaN(parVal) ? null : parVal,
+      inventory_minimum: isNaN(lowVal) ? null : lowVal,
     };
 
     updateItem(updatedItem, {
@@ -126,7 +133,7 @@ const EditItem = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory} required>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -151,13 +158,12 @@ const EditItem = () => {
                     placeholder="0" 
                     value={formValues.quantity}
                     onChange={(e) => setFormValues(prev => ({ ...prev, quantity: e.target.value }))}
-                    required 
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="unit">Unit</Label>
-                  <Select value={unit} onValueChange={setUnit} required>
+                  <Select value={unit} onValueChange={setUnit}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -183,7 +189,6 @@ const EditItem = () => {
                     placeholder="0" 
                     value={formValues.parLevel}
                     onChange={(e) => setFormValues(prev => ({ ...prev, parLevel: e.target.value }))}
-                    required 
                   />
                 </div>
 
@@ -197,7 +202,6 @@ const EditItem = () => {
                     placeholder="0" 
                     value={formValues.lowStockThreshold}
                     onChange={(e) => setFormValues(prev => ({ ...prev, lowStockThreshold: e.target.value }))}
-                    required 
                   />
                 </div>
               </div>
@@ -210,10 +214,9 @@ const EditItem = () => {
                   type="number" 
                   step="0.01" 
                   placeholder="0.00" 
-                  value={formValues.cost}
-                  onChange={(e) => setFormValues(prev => ({ ...prev, cost: e.target.value }))}
-                  required 
-                />
+                    value={formValues.cost}
+                    onChange={(e) => setFormValues(prev => ({ ...prev, cost: e.target.value }))}
+                  />
               </div>
 
               <div className="space-y-2">
@@ -222,10 +225,9 @@ const EditItem = () => {
                   id="supplier" 
                   name="supplier" 
                   placeholder="Enter supplier name" 
-                  value={formValues.supplier}
-                  onChange={(e) => setFormValues(prev => ({ ...prev, supplier: e.target.value }))}
-                  required 
-                />
+                    value={formValues.supplier}
+                    onChange={(e) => setFormValues(prev => ({ ...prev, supplier: e.target.value }))}
+                  />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -237,7 +239,6 @@ const EditItem = () => {
                     type="date" 
                     value={formValues.lastShipmentDate}
                     onChange={(e) => setFormValues(prev => ({ ...prev, lastShipmentDate: e.target.value }))}
-                    required 
                   />
                 </div>
 
@@ -251,7 +252,6 @@ const EditItem = () => {
                     placeholder="0" 
                     value={formValues.lastShipmentQuantity}
                     onChange={(e) => setFormValues(prev => ({ ...prev, lastShipmentQuantity: e.target.value }))}
-                    required 
                   />
                 </div>
               </div>
