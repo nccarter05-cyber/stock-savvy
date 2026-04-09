@@ -1,18 +1,20 @@
 
 
-# Add Admin Role to Simplestockadmin@gmail.com
+# Make All Fields Optional on Edit Item Page
 
-## What
-Insert an `admin` role for user `simplestockadmin@gmail.com` (ID: `a4ee65b1-07c2-4919-ab15-b2ace0d446a6`) into the `user_roles` table. The user currently only has the `staff` role.
+## Problem
+The Edit Item form has `required` on every field, preventing saves when fields are left blank. The Add Item page already handles optional fields correctly with `isNaN` checks and fallbacks to `null`.
 
-## How
-A single database migration:
+## Changes
 
-```sql
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('a4ee65b1-07c2-4919-ab15-b2ace0d446a6', 'admin')
-ON CONFLICT (user_id, role) DO NOTHING;
-```
+### 1. `src/pages/EditItem.tsx`
+- Remove the `required` attribute from all fields **except** Item Name
+- Update `handleSubmit` to handle empty/NaN values gracefully (matching the AddItem pattern):
+  - `parseFloat` results that are `NaN` become `null` (for cost, quantities, par level, low stock)
+  - Empty strings become `null` (for category, unit, supplier, shipment date)
+  - `current_quantity` defaults to `0` when empty
 
-No code changes needed. After migration, the user will see the admin shield icon in the navbar and have access to the Admin Dashboard.
+Fields affected: category select, quantity, unit select, par level, low stock alert, cost per unit, supplier, last shipment date, qty received.
+
+No database changes needed — all columns except `inventory_name` are already nullable.
 
