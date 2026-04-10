@@ -5,13 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Trash2, Plus, Minus, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { items, isLoading, deleteItem, updateQuantity } = useInventory();
+  const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity } = useInventory();
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
 
   const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
@@ -149,13 +150,42 @@ const Inventory = () => {
       <div className="space-y-4 md:space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground">Inventory</h2>
-          <Button onClick={() => navigate('/add-item')} size="sm" className="md:hidden">
-            <Plus className="h-4 w-4 mr-1" />
-            Add
-          </Button>
-          <Button onClick={() => navigate('/add-item')} className="hidden md:flex">
-            Add New Item
-          </Button>
+          <div className="flex items-center gap-2">
+            {items.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={isClearingAll}>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    <span className="hidden md:inline">Clear All</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear all inventory?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all {items.length} items from your inventory. This cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => clearAllItems()}
+                    >
+                      Delete All
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <Button onClick={() => navigate('/add-item')} size="sm" className="md:hidden">
+              <Plus className="h-4 w-4 mr-1" />
+              Add
+            </Button>
+            <Button onClick={() => navigate('/add-item')} className="hidden md:flex">
+              Add New Item
+            </Button>
+          </div>
         </div>
 
         {items.length === 0 ? (

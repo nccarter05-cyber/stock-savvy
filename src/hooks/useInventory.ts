@@ -264,6 +264,34 @@ export const useInventory = () => {
     },
   });
 
+  const clearAllItemsMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('inventory_info')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast({
+        title: 'Inventory cleared',
+        description: 'All inventory items have been deleted.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to clear inventory',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const updateItemMutation = useMutation({
     mutationFn: async (updatedItem: {
       id: string;
@@ -383,6 +411,8 @@ export const useInventory = () => {
     addItem: addItemMutation.mutate,
     updateItem: updateItemMutation.mutate,
     deleteItem: deleteItemMutation.mutate,
+    clearAllItems: clearAllItemsMutation.mutate,
+    isClearingAll: clearAllItemsMutation.isPending,
     updateQuantity: updateQuantityMutation.mutate,
     setQuantity: setQuantityMutation.mutate,
     calculateTotalValue,
