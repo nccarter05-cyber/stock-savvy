@@ -84,6 +84,7 @@ export const useInventory = () => {
       cost_per_unit?: number | null;
       last_shipment_date?: string | null;
       last_shipment_quantity?: number | null;
+      vendor_id?: string | null;
       vendor_name?: string | null;
       current_quantity?: number;
       inventory_maximum?: number | null;
@@ -95,9 +96,9 @@ export const useInventory = () => {
         throw new Error('Not authenticated');
       }
 
-      let vendorId: string | null = null;
-      
-      if (newItem.vendor_name && newItem.vendor_name.trim()) {
+      let vendorId: string | null = newItem.vendor_id ?? null;
+
+      if (!vendorId && newItem.vendor_name && newItem.vendor_name.trim()) {
         // Check if vendor exists
         const { data: existingVendor } = await supabase
           .from('vendor_info')
@@ -160,6 +161,7 @@ export const useInventory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
       toast({
         title: 'Success',
         description: 'Item added successfully',

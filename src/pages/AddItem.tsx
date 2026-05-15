@@ -6,14 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useInventory } from "@/hooks/useInventory";
+import { useVendors } from "@/hooks/useVendors";
 import { useState } from "react";
+
+const NEW_VENDOR = "__new__";
 
 const AddItem = () => {
   const navigate = useNavigate();
   const { addItem } = useInventory();
+  const { vendors } = useVendors();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [category, setCategory] = useState("");
   const [unit, setUnit] = useState("");
+  const [vendorId, setVendorId] = useState<string>("");
+  const [newVendorName, setNewVendorName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +34,7 @@ const AddItem = () => {
     const shipQtyVal = parseFloat(formData.get("lastShipmentQuantity") as string);
     const shipDate = formData.get("lastShipmentDate") as string;
 
+    const isNewVendor = vendorId === NEW_VENDOR;
     const newItem = {
       inventory_name: formData.get("name") as string,
       category: category || null,
@@ -35,7 +42,8 @@ const AddItem = () => {
       cost_per_unit: isNaN(costVal) ? null : costVal,
       last_shipment_date: shipDate || null,
       last_shipment_quantity: isNaN(shipQtyVal) ? null : shipQtyVal,
-      vendor_name: (formData.get("supplier") as string) || null,
+      vendor_id: !isNewVendor && vendorId ? vendorId : null,
+      vendor_name: isNewVendor ? (newVendorName.trim() || null) : null,
       current_quantity: isNaN(qtyVal) ? 0 : qtyVal,
       inventory_maximum: isNaN(parVal) ? null : parVal,
       inventory_minimum: isNaN(lowVal) ? null : lowVal,
@@ -125,7 +133,26 @@ const AddItem = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input id="supplier" name="supplier" placeholder="Enter supplier name" />
+                <Select value={vendorId} onValueChange={setVendorId}>
+                  <SelectTrigger id="supplier">
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendors.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.vendor_name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={NEW_VENDOR}>+ Add new vendor</SelectItem>
+                  </SelectContent>
+                </Select>
+                {vendorId === NEW_VENDOR && (
+                  <Input
+                    placeholder="Enter new vendor name"
+                    value={newVendorName}
+                    onChange={(e) => setNewVendorName(e.target.value)}
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
