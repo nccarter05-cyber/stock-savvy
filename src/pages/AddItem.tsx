@@ -6,14 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useInventory } from "@/hooks/useInventory";
+import { useVendors } from "@/hooks/useVendors";
 import { useState } from "react";
+
+const NEW_VENDOR = "__new__";
 
 const AddItem = () => {
   const navigate = useNavigate();
   const { addItem } = useInventory();
+  const { vendors } = useVendors();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [category, setCategory] = useState("");
   const [unit, setUnit] = useState("");
+  const [vendorId, setVendorId] = useState<string>("");
+  const [newVendorName, setNewVendorName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
