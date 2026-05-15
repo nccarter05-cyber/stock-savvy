@@ -133,7 +133,26 @@ const AddItem = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input id="supplier" name="supplier" placeholder="Enter supplier name" />
+                <Select value={vendorId} onValueChange={setVendorId}>
+                  <SelectTrigger id="supplier">
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendors.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.vendor_name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={NEW_VENDOR}>+ Add new vendor</SelectItem>
+                  </SelectContent>
+                </Select>
+                {vendorId === NEW_VENDOR && (
+                  <Input
+                    placeholder="Enter new vendor name"
+                    value={newVendorName}
+                    onChange={(e) => setNewVendorName(e.target.value)}
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
