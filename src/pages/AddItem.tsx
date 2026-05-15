@@ -34,6 +34,7 @@ const AddItem = () => {
     const shipQtyVal = parseFloat(formData.get("lastShipmentQuantity") as string);
     const shipDate = formData.get("lastShipmentDate") as string;
 
+    const isNewVendor = vendorId === NEW_VENDOR;
     const newItem = {
       inventory_name: formData.get("name") as string,
       category: category || null,
@@ -41,7 +42,8 @@ const AddItem = () => {
       cost_per_unit: isNaN(costVal) ? null : costVal,
       last_shipment_date: shipDate || null,
       last_shipment_quantity: isNaN(shipQtyVal) ? null : shipQtyVal,
-      vendor_name: (formData.get("supplier") as string) || null,
+      vendor_id: !isNewVendor && vendorId ? vendorId : null,
+      vendor_name: isNewVendor ? (newVendorName.trim() || null) : null,
       current_quantity: isNaN(qtyVal) ? 0 : qtyVal,
       inventory_maximum: isNaN(parVal) ? null : parVal,
       inventory_minimum: isNaN(lowVal) ? null : lowVal,
