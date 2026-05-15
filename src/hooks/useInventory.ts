@@ -161,6 +161,7 @@ export const useInventory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
       toast({
         title: 'Success',
         description: 'Item added successfully',
