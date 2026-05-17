@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users, FileUp, Shield } from 'lucide-react';
+import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users, FileUp, Shield, ScanLine } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
