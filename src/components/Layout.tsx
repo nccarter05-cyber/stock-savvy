@@ -100,11 +100,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/inventory', icon: Package, label: 'Inventory' },
-    { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/add-item', icon: Plus, label: 'Add Item' },
+    { path: '/scan-invoice', icon: ScanLine, label: 'Scan' },
+    { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/bulk-add', icon: ListPlus, label: 'Bulk Add' },
     { path: '/csv-upload', icon: FileUp, label: 'CSV Upload' },
-    { path: '/scan-invoice', icon: ScanLine, label: 'Scan Invoice' },
     { path: '/team-settings', icon: Users, label: 'Team', badge: pendingRequestsCount > 0 ? pendingRequestsCount : teamMemberCount, isAlert: pendingRequestsCount > 0 },
     ...(isAdmin ? [{ path: '/admin', icon: Shield, label: 'Admin', badge: undefined, isAlert: false }] : []),
   ];
