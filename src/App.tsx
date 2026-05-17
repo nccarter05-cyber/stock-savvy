@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import TeamSettings from "./pages/TeamSettings";
 import CSVUpload from "./pages/CSVUpload";
+import ScanInvoice from "./pages/ScanInvoice";
 import AdminDashboard from "./pages/AdminDashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
