@@ -21,6 +21,7 @@ export type Database = {
           created_at: string | null
           id: string
           inventory_name: string
+          item_number: string | null
           last_shipment_date: string | null
           last_shipment_quantity: number | null
           unit: string | null
@@ -34,6 +35,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           inventory_name: string
+          item_number?: string | null
           last_shipment_date?: string | null
           last_shipment_quantity?: number | null
           unit?: string | null
@@ -47,6 +49,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           inventory_name?: string
+          item_number?: string | null
           last_shipment_date?: string | null
           last_shipment_quantity?: number | null
           unit?: string | null

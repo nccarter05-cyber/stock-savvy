@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users, FileUp, Shield } from 'lucide-react';
+import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users, FileUp, Shield, ScanLine } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
@@ -100,8 +100,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/inventory', icon: Package, label: 'Inventory' },
-    { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/add-item', icon: Plus, label: 'Add Item' },
+    { path: '/scan-invoice', icon: ScanLine, label: 'Scan' },
+    { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/bulk-add', icon: ListPlus, label: 'Bulk Add' },
     { path: '/csv-upload', icon: FileUp, label: 'CSV Upload' },
     { path: '/team-settings', icon: Users, label: 'Team', badge: pendingRequestsCount > 0 ? pendingRequestsCount : teamMemberCount, isAlert: pendingRequestsCount > 0 },

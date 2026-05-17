@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import TeamSettings from "./pages/TeamSettings";
 import CSVUpload from "./pages/CSVUpload";
+import ScanInvoice from "./pages/ScanInvoice";
 import AdminDashboard from "./pages/AdminDashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/low-stock" element={<ProtectedRoute><LowStock /></ProtectedRoute>} />
             <Route path="/team-settings" element={<ProtectedRoute><TeamSettings /></ProtectedRoute>} />
             <Route path="/csv-upload" element={<ProtectedRoute><CSVUpload /></ProtectedRoute>} />
+            <Route path="/scan-invoice" element={<ProtectedRoute><ScanInvoice /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
