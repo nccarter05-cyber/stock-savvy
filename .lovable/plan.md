@@ -1,77 +1,29 @@
+# Fix: "Take Photo" not working on Samsung
 
-# Scan Invoice → Inventory
+## Why it fails
+`InvoiceCameraCapture.tsx` keeps the camera `<input type="file" capture="environment">` hidden and opens it via `cameraRef.current.click()` inside the Button's `onClick`. Samsung Internet (and Chrome on Samsung when the app is installed as a PWA) often refuses programmatic clicks on hidden file inputs — the camera intent never launches and nothing visible happens. iOS Safari and desktop Chrome happen to allow it, which is why it works for you in preview but not on the phone.
 
-A new bottom-nav page that lets a team member photograph (or upload) an invoice/packing slip/receipt, runs AI vision on it, then shows a CSV-style review table where the user confirms each line before importing into inventory.
+## Fix
+Replace the programmatic `.click()` pattern with real `<label htmlFor>` elements so the file picker opens directly from the user's tap (which every Android browser honors).
 
-## User flow
+### Changes to `src/components/InvoiceCameraCapture.tsx`
+- Remove the `useRef` handles and the `onClick` handlers on the two Buttons.
+- Wrap each button in a `<label htmlFor="invoice-camera-input">` / `<label htmlFor="invoice-library-input">` and give the inputs matching `id`s.
+- Render the Buttons with `asChild` + `<span>` (or use a styled `<label>` directly) so the label is the actual click target. Keep current visuals (icon + text, h-20 grid).
+- Keep the inputs visually hidden using `sr-only` (not `hidden`/`display:none` on some Android variants this also blocks the picker — `sr-only` keeps them in the layout but invisible).
+- Keep `accept="image/*"`, `capture="environment"` on the camera input and `accept="image/*" multiple` on the library input.
+- Keep the existing `onChange` handlers and `e.target.value = ''` reset so re-taking the same photo still fires `change`.
+- When `disabled`, add `pointer-events-none opacity-50` to the labels and the `disabled` attribute to the inputs.
 
-1. Tap **Scan Invoice** in the bottom nav → `/scan-invoice`.
-2. Capture stage:
-   - Take photo with device camera, **or** pick from photo library, **or** add multiple pages.
-   - Thumbnails show captured pages; user can remove/retake any page.
-   - Tap **Extract** → spinner while AI processes.
-3. Review stage (mirrors CSV upload UI):
-   - Table of extracted line items with editable cells: Vendor, Item Number, Item Name, Quantity, Unit, Unit Price, Invoice Date.
-   - Each row shows match status:
-     - ✅ **Matched** (green): matched to existing inventory by item_number, then by name.
-     - ⚠️ **Unmatched** (amber): row highlighted. User picks per row: **Match existing item** (dropdown) **or** **Create new item**.
-   - Vendor column: dropdown of existing vendors (same component used on Add Item) with "+ Add new vendor" fallback. AI-suggested vendor is auto-selected if a match is found.
-   - User can delete rows or edit any cell.
-4. Tap **Import N items**:
-   - For matched rows: **add** the scanned qty to `current_quantity`, update `last_shipment_date` and `last_shipment_quantity`, refresh `cost_per_unit` if provided.
-   - For "create new" rows: insert into `inventory_info` + `inventory_quantity` (qty as starting stock).
-   - Auto-create any new vendors.
-   - Toast success/failure counts and route back to Inventory.
+### No other files change
+`ScanInvoice.tsx`, the hook, and the edge function are unaffected — this is purely the capture trigger.
 
-## Schema change
+## How to verify on the Samsung phone
+1. Open the preview URL in Samsung Internet (and again in Chrome).
+2. Go to `/scan-invoice` → tap "Take Photo" → the system camera should open immediately.
+3. Tap "From Library" → the gallery picker should open and allow multi-select.
+4. If installed as a PWA, repeat from the installed icon.
 
-Add one column:
-- `inventory_info.item_number` — `text`, nullable, indexed for lookup.
-
-No other tables need changes. (Add Item / Edit Item / CSV forms will pick up the new optional field in a follow-up; not in scope for this page.)
-
-## Files to add / change
-
-**New**
-- `supabase/functions/scan-invoice/index.ts` — Edge function. Accepts `{ images: string[] }` (base64 data URLs). Calls Lovable AI Gateway (`google/gemini-2.5-pro`) with vision + structured JSON output schema:
-  ```
-  { vendor_name, invoice_date, line_items: [
-      { item_number, item_name, quantity, unit, unit_price }
-  ] }
-  ```
-  Returns parsed JSON. Validates with Zod. CORS + JWT-verified.
-- `src/pages/ScanInvoice.tsx` — Two-stage page (capture → review). Reuses Card/Table/Select/Button shadcn primitives.
-- `src/hooks/useScanInvoice.ts` — Wraps capture state, calls the edge function via `supabase.functions.invoke`, holds extracted rows, runs client-side matching against existing inventory + vendors, and performs the import (mirrors `useCSVUpload` patterns).
-- `src/components/InvoiceCameraCapture.tsx` — Camera capture component using `<input type="file" accept="image/*" capture="environment" multiple>` for max iOS/Android compatibility, plus a separate "Choose from library" button (no `capture` attr).
-
-**Edited**
-- `src/App.tsx` — Add `/scan-invoice` protected route.
-- `src/components/Layout.tsx` — Add bottom-nav item "Scan" (camera icon) pointing to `/scan-invoice`.
-- `src/integrations/supabase/types.ts` — auto-regenerated after migration.
-
-## Matching logic (client-side, in useScanInvoice)
-
-For each extracted line item:
-1. Load full inventory list once (id, inventory_name, item_number, vendor_id).
-2. Match priority:
-   a. Exact `item_number` (case-insensitive).
-   b. Exact `inventory_name` (case-insensitive, trimmed).
-   c. Fuzzy name match (simple includes) → still flagged as unmatched, suggestion preselected in dropdown.
-3. Vendor: exact case-insensitive name match against team's `vendor_info`.
-
-## Technical details
-
-- **AI model**: `google/gemini-2.5-pro` via Lovable AI Gateway (multimodal). System prompt instructs the model to return ONLY the JSON schema, with empty strings for unreadable fields. Use AI SDK `generateText` + `Output.object` with a Zod schema; multipage support by sending all images as content parts in one request.
-- **LOVABLE_API_KEY** is already provisioned (Lovable Cloud). No user secret needed.
-- **Image handling**: client converts each File → base64 data URL (resized to max 1600px long edge via canvas to keep payload small and improve OCR speed).
-- **Edge function config**: default `verify_jwt = true`; no special `config.toml` block needed.
-- **Mobile-first**: capture buttons full-width, review table is a stacked card list on mobile (matches existing patterns), bottom nav remains visible.
-- **Error states**: 429 → "AI is busy, try again"; 402 → "AI credits exhausted — check usage"; parse failures → keep raw text in a collapsible debug panel and let user retry or skip.
-- **Import**: reuses the same insert paths as `useCSVUpload` and `useInventory.addItemMutation`, scoped by `auth.uid()` so RLS allows it.
-
-## Out of scope (future)
-
-- Persisting the original invoice image to storage for audit.
-- Editing item_number on Add Item / Edit Item pages (will follow once column exists).
-- PDF invoice ingestion (only images for v1).
-- Auto-import without review.
+## Out of scope
+- No change to AI extraction, review table, or import logic.
+- Not switching to `getUserMedia` / in-page camera — that's a larger redesign and not needed to fix this.
