@@ -1,6 +1,4 @@
-import { useRef } from 'react';
 import { Camera, ImagePlus, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface Props {
   images: { file: File; preview: string }[];
@@ -10,60 +8,60 @@ interface Props {
 }
 
 export const InvoiceCameraCapture = ({ images, onAdd, onRemove, disabled }: Props) => {
-  const cameraRef = useRef<HTMLInputElement>(null);
-  const libraryRef = useRef<HTMLInputElement>(null);
-
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
     onAdd(Array.from(files));
   };
 
+  const tileClass =
+    'h-20 flex flex-col items-center justify-center gap-1 rounded-md border text-sm font-medium cursor-pointer select-none transition-colors';
+
   return (
     <div className="space-y-4">
-      <input
-        ref={cameraRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          handleFiles(e.target.files);
-          e.target.value = '';
-        }}
-      />
-      <input
-        ref={libraryRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          handleFiles(e.target.files);
-          e.target.value = '';
-        }}
-      />
-
       <div className="grid grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="default"
-          className="h-20 flex-col gap-1"
-          disabled={disabled}
-          onClick={() => cameraRef.current?.click()}
+        <label
+          htmlFor="invoice-camera-input"
+          className={`${tileClass} bg-primary text-primary-foreground hover:bg-primary/90 ${
+            disabled ? 'pointer-events-none opacity-50' : ''
+          }`}
         >
           <Camera className="h-6 w-6" />
           <span>Take Photo</span>
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-20 flex-col gap-1"
-          disabled={disabled}
-          onClick={() => libraryRef.current?.click()}
+          <input
+            id="invoice-camera-input"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="sr-only"
+            disabled={disabled}
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
+        </label>
+
+        <label
+          htmlFor="invoice-library-input"
+          className={`${tileClass} bg-background hover:bg-accent hover:text-accent-foreground ${
+            disabled ? 'pointer-events-none opacity-50' : ''
+          }`}
         >
           <ImagePlus className="h-6 w-6" />
           <span>From Library</span>
-        </Button>
+          <input
+            id="invoice-library-input"
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            disabled={disabled}
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
+        </label>
       </div>
 
       {images.length > 0 && (
