@@ -58,6 +58,9 @@ const Inventory = () => {
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
+              {item.item_number && (
+                <p className="text-xs text-muted-foreground">Item #: {item.item_number}</p>
+              )}
               <h3 className="font-semibold text-foreground">{item.inventory_name}</h3>
               {item.category && (
                 <Badge variant="secondary" className={`mt-1 ${getCategoryColor(item.category)}`}>
