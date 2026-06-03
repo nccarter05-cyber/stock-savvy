@@ -239,6 +239,7 @@ const Inventory = () => {
                         className="cursor-pointer hover:bg-accent/50 transition-colors"
                         onClick={() => navigate(`/edit-item/${item.id}`)}
                       >
+                        <TableCell className="font-mono text-sm">{item.item_number || '-'}</TableCell>
                         <TableCell className="font-medium">{item.inventory_name}</TableCell>
                         <TableCell>
                           {item.category ? (
