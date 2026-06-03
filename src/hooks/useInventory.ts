@@ -61,6 +61,7 @@ export const useInventory = () => {
       // Transform data to flat structure
       const transformedData: InventoryItemWithQuantity[] = (inventoryData || []).map((item: any) => ({
         id: item.id,
+        item_number: item.item_number,
         inventory_name: item.inventory_name,
         category: item.category,
         unit: item.unit,
