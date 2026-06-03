@@ -37,6 +37,7 @@ export const useInventory = () => {
         .from('inventory_info')
         .select(`
           id,
+          item_number,
           inventory_name,
           category,
           unit,
