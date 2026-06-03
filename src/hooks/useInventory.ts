@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface InventoryItemWithQuantity {
   id: string;
+  item_number: string | null;
   inventory_name: string;
   category: string | null;
   unit: string | null;
