@@ -58,6 +58,9 @@ const Inventory = () => {
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
+              {item.item_number && (
+                <p className="text-xs text-muted-foreground">Item #: {item.item_number}</p>
+              )}
               <h3 className="font-semibold text-foreground">{item.inventory_name}</h3>
               {item.category && (
                 <Badge variant="secondary" className={`mt-1 ${getCategoryColor(item.category)}`}>
@@ -207,6 +210,7 @@ const Inventory = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Item #</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Quantity</TableHead>
@@ -235,6 +239,7 @@ const Inventory = () => {
                         className="cursor-pointer hover:bg-accent/50 transition-colors"
                         onClick={() => navigate(`/edit-item/${item.id}`)}
                       >
+                        <TableCell className="font-mono text-sm">{item.item_number || '-'}</TableCell>
                         <TableCell className="font-medium">{item.inventory_name}</TableCell>
                         <TableCell>
                           {item.category ? (

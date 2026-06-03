@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface InventoryItemWithQuantity {
   id: string;
+  item_number: string | null;
   inventory_name: string;
   category: string | null;
   unit: string | null;
@@ -36,6 +37,7 @@ export const useInventory = () => {
         .from('inventory_info')
         .select(`
           id,
+          item_number,
           inventory_name,
           category,
           unit,
@@ -59,6 +61,7 @@ export const useInventory = () => {
       // Transform data to flat structure
       const transformedData: InventoryItemWithQuantity[] = (inventoryData || []).map((item: any) => ({
         id: item.id,
+        item_number: item.item_number,
         inventory_name: item.inventory_name,
         category: item.category,
         unit: item.unit,
