@@ -16,6 +16,7 @@ import TeamSettings from "./pages/TeamSettings";
 import CSVUpload from "./pages/CSVUpload";
 import ScanInvoice from "./pages/ScanInvoice";
 import AdminDashboard from "./pages/AdminDashboard";
+import Reports from "./pages/Reports";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/csv-upload" element={<ProtectedRoute><CSVUpload /></ProtectedRoute>} />
             <Route path="/scan-invoice" element={<ProtectedRoute><ScanInvoice /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
