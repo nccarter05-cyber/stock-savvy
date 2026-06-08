@@ -2,6 +2,7 @@ import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { VoiceInput } from "@/components/VoiceInput";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
@@ -72,7 +73,7 @@ const AddItem = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Item Name</Label>
-                <Input id="name" name="name" placeholder="Enter item name" required />
+                <VoiceInput id="name" name="name" placeholder="Enter item name or tap mic to dictate" required />
               </div>
 
               <div className="space-y-2">
