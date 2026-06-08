@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users, FileUp, Shield, ScanLine } from 'lucide-react';
+import { Package, Home, AlertTriangle, Plus, ListPlus, LogOut, Menu, Users, FileUp, Shield, ScanLine, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
@@ -105,6 +105,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/low-stock', icon: AlertTriangle, label: 'Low Stock' },
     { path: '/bulk-add', icon: ListPlus, label: 'Bulk Add' },
     { path: '/csv-upload', icon: FileUp, label: 'CSV Upload' },
+    { path: '/reports', icon: FileText, label: 'Reports' },
     { path: '/team-settings', icon: Users, label: 'Team', badge: pendingRequestsCount > 0 ? pendingRequestsCount : teamMemberCount, isAlert: pendingRequestsCount > 0 },
     ...(isAdmin ? [{ path: '/admin', icon: Shield, label: 'Admin', badge: undefined, isAlert: false }] : []),
   ];
