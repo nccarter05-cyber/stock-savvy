@@ -73,7 +73,7 @@ const AddItem = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Item Name</Label>
-                <Input id="name" name="name" placeholder="Enter item name" required />
+                <VoiceInput id="name" name="name" placeholder="Enter item name or tap mic to dictate" required />
               </div>
 
               <div className="space-y-2">
