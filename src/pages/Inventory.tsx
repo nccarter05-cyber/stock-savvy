@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2, Plus, Minus, Pencil, Search } from 'lucide-react';
+import { Trash2, Plus, Minus, Pencil, Search, X, Pencil as PencilIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
+import BulkEditDialog from '@/components/BulkEditDialog';
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity } = useInventory();
+  const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity, bulkUpdateItems, isBulkUpdating } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedQuery, setAppliedQuery] = useState('');
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+
 
   const filteredItems = appliedQuery.trim()
     ? items.filter((item) => {
