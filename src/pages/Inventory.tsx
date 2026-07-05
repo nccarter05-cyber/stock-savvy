@@ -203,16 +203,31 @@ const Inventory = () => {
           </div>
         </div>
 
-        {items.length === 0 ? (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search by Item #, Name or Category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {filteredItems.length === 0 ? (
           <div className="border rounded-lg bg-card p-8 md:p-12 text-center">
-            <p className="text-muted-foreground mb-4">No inventory items yet</p>
-            <Button onClick={() => navigate('/add-item')}>Add Your First Item</Button>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery.trim() ? 'No matching items found' : 'No inventory items yet'}
+            </p>
+            <Button onClick={() => navigate('/add-item')}>
+              {searchQuery.trim() ? 'Add New Item' : 'Add Your First Item'}
+            </Button>
           </div>
         ) : (
           <>
             {/* Mobile card layout */}
             <div className="space-y-3 md:hidden">
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <MobileItemCard key={item.id} item={item} />
               ))}
             </div>
