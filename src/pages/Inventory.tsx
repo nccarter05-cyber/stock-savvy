@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2, Plus, Minus, Pencil } from 'lucide-react';
+import { Trash2, Plus, Minus, Pencil, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
 
