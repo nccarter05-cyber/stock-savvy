@@ -48,6 +48,42 @@ const Inventory = () => {
     setAdjustAmounts(prev => ({ ...prev, [itemId]: Math.max(1, value) }));
   };
 
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allFilteredSelected = filteredItems.length > 0 && filteredItems.every((i) => selectedIds.has(i.id));
+  const someFilteredSelected = filteredItems.some((i) => selectedIds.has(i.id));
+
+  const toggleSelectAllFiltered = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) {
+        filteredItems.forEach((i) => next.delete(i.id));
+      } else {
+        filteredItems.forEach((i) => next.add(i.id));
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const categories = useMemo(
+    () => Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c))).sort(),
+    [items],
+  );
+  const vendors = useMemo(
+    () => Array.from(new Set(items.map((i) => i.vendor_name).filter((v): v is string => !!v))).sort(),
+    [items],
+  );
+
+
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
       'Produce': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
