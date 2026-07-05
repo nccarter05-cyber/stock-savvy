@@ -13,7 +13,19 @@ import { useInventory } from '@/hooks/useInventory';
 const Inventory = () => {
   const navigate = useNavigate();
   const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity } = useInventory();
+  const [searchQuery, setSearchQuery] = useState('');
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+
+  const filteredItems = searchQuery.trim()
+    ? items.filter((item) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          (item.item_number?.toLowerCase().includes(q) ?? false) ||
+          item.inventory_name.toLowerCase().includes(q) ||
+          (item.category?.toLowerCase().includes(q) ?? false)
+        );
+      })
+    : items;
 
   const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
   
