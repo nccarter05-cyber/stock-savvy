@@ -471,7 +471,7 @@ const Inventory = () => {
                 Clear
               </Button>
               <Button size="sm" onClick={() => setBulkOpen(true)}>
-                <PencilIcon className="h-4 w-4 mr-1" />
+                <Pencil className="h-4 w-4 mr-1" />
                 Bulk edit
               </Button>
             </div>
