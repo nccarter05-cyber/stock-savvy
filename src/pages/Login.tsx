@@ -108,14 +108,8 @@ const Login = () => {
       return;
     }
 
-    // Check if team with this inventory_db_name already exists using secure function
-    const { data: existingTeamId } = await supabase
-      .rpc('get_team_id_by_name', { team_name: inventoryDbName.trim() });
-    
-    const existingTeam = existingTeamId ? { id: existingTeamId } : null;
-
     const redirectUrl = `${window.location.origin}/dashboard`;
-    
+
     const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
@@ -138,62 +132,34 @@ const Login = () => {
       return;
     }
 
-    const newUserId = signUpData.user?.id;
-    
-    if (newUserId) {
-      if (existingTeam) {
-        // Team exists - create a join request
-        const { error: requestError } = await supabase
-          .from('join_requests')
-          .insert({
-            team_id: existingTeam.id,
-            user_id: newUserId,
-            status: 'pending',
-          });
+    if (signUpData.user?.id) {
+      // Atomically create the team or request to join it. This RPC does not
+      // expose whether the team name existed before this call to anyone else.
+      const { data: result, error: rpcError } = await supabase
+        .rpc('signup_join_or_create_team', { _db_name: inventoryDbName.trim() });
 
-        if (requestError) {
-          console.error('Failed to create join request:', requestError);
-        }
-
+      if (rpcError) {
         toast({
-          title: "Account created!",
-          description: "Your request to join the team has been sent. The team owner will review it.",
+          title: "Account created, but team setup failed",
+          description: `${rpcError.message}. Please sign in and try again from Team Settings.`,
+          variant: "destructive",
         });
       } else {
-        // Team doesn't exist - create new team and add user as owner
-        const { data: newTeam, error: teamError } = await supabase
-          .from('inventory_teams')
-          .insert({
-            inventory_db_name: inventoryDbName.trim(),
-            owner_id: newUserId,
-          })
-          .select('id')
-          .single();
-
-        if (teamError) {
-          console.error('Failed to create team:', teamError);
-        } else if (newTeam) {
-          // Add user as owner in team_memberships
-          const { error: memberError } = await supabase
-            .from('team_memberships')
-            .insert({
-              team_id: newTeam.id,
-              user_id: newUserId,
-              role: 'owner',
-            });
-
-          if (memberError) {
-            console.error('Failed to create membership:', memberError);
-          }
+        const action = (result as { action?: string } | null)?.action;
+        if (action === 'team_created') {
+          toast({
+            title: "Account created!",
+            description: "You are now the owner of this inventory team.",
+          });
+        } else {
+          toast({
+            title: "Account created!",
+            description: "Your request to join the team has been sent. The team owner will review it.",
+          });
         }
-
-        toast({
-          title: "Account created!",
-          description: "You are now the owner of this inventory team.",
-        });
       }
     }
-    
+
     setLoading(false);
   };
 

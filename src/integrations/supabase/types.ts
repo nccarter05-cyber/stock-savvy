@@ -286,7 +286,6 @@ export type Database = {
     }
     Functions: {
       get_team_id_by_db_name: { Args: { _db_name: string }; Returns: string }
-      get_team_id_by_name: { Args: { team_name: string }; Returns: string }
       get_team_member_profile: {
         Args: { member_user_id: string }
         Returns: {
@@ -313,7 +312,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
-      team_name_exists: { Args: { team_name: string }; Returns: boolean }
+      signup_join_or_create_team: { Args: { _db_name: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "staff"

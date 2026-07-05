@@ -278,45 +278,21 @@ export const useTeam = () => {
     },
   });
 
-  // Create a new team
+  // Create a new team via secure atomic RPC
   const createTeamMutation = useMutation({
     mutationFn: async (inventoryDbName: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check if team name already exists using secure function
-      const { data: teamExists, error: checkError } = await supabase
-        .rpc('team_name_exists', { team_name: inventoryDbName });
+      const { data, error } = await supabase
+        .rpc('signup_join_or_create_team', { _db_name: inventoryDbName });
 
-      if (checkError) throw checkError;
-      if (teamExists) {
+      if (error) throw error;
+
+      const action = (data as { action?: string } | null)?.action;
+      if (action !== 'team_created') {
         throw new Error('A team with this name already exists');
       }
-
-      // Create the team
-      const { data: newTeam, error: teamError } = await supabase
-        .from('inventory_teams')
-        .insert({
-          owner_id: user.id,
-          inventory_db_name: inventoryDbName,
-        })
-        .select()
-        .single();
-
-      if (teamError) throw teamError;
-
-      // Add owner as team member
-      const { error: memberError } = await supabase
-        .from('team_memberships')
-        .insert({
-          team_id: newTeam.id,
-          user_id: user.id,
-          role: 'owner',
-        });
-
-      if (memberError) throw memberError;
-
-      return newTeam;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team'] });
@@ -335,46 +311,26 @@ export const useTeam = () => {
     },
   });
 
-  // Request to join an existing team
+  // Request to join an existing team via secure atomic RPC
   const requestToJoinMutation = useMutation({
     mutationFn: async (inventoryDbName: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Find the team by inventory_db_name using secure function
-      const { data: teamId, error: teamError } = await supabase
-        .rpc('get_team_id_by_name', { team_name: inventoryDbName });
+      const { data, error } = await supabase
+        .rpc('signup_join_or_create_team', { _db_name: inventoryDbName });
 
-      if (teamError) throw teamError;
-      if (!teamId) {
+      if (error) throw error;
+
+      const action = (data as { action?: string } | null)?.action;
+      if (action === 'team_created') {
+        // Name was not taken — we accidentally created it. Treat as generic
+        // "not found" to avoid leaking existence info to the client.
         throw new Error('No team found with that name');
       }
-      
-      const targetTeam = { id: teamId };
-
-      // Check if user already has a pending request
-      const { data: existingRequest } = await supabase
-        .from('join_requests')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('team_id', targetTeam.id)
-        .eq('status', 'pending')
-        .maybeSingle();
-
-      if (existingRequest) {
-        throw new Error('You already have a pending request for this team');
+      if (action === 'already_member') {
+        throw new Error('You are already a member of this team');
       }
-
-      // Create join request
-      const { error: requestError } = await supabase
-        .from('join_requests')
-        .insert({
-          team_id: targetTeam.id,
-          user_id: user.id,
-          status: 'pending',
-        });
-
-      if (requestError) throw requestError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-join-request'] });
