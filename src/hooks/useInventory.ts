@@ -520,6 +520,8 @@ export const useInventory = () => {
     isClearingAll: clearAllItemsMutation.isPending,
     updateQuantity: updateQuantityMutation.mutate,
     setQuantity: setQuantityMutation.mutate,
+    bulkUpdateItems: bulkUpdateItemsMutation.mutate,
+    isBulkUpdating: bulkUpdateItemsMutation.isPending,
     calculateTotalValue,
     getLowStockItems,
   };
