@@ -458,6 +458,46 @@ const Inventory = () => {
           </>
         )}
       </div>
+
+      {selectedIds.size > 0 && (
+        <div className="fixed left-0 right-0 bottom-16 md:bottom-4 z-40 px-4 pointer-events-none">
+          <div className="mx-auto max-w-3xl bg-card border shadow-lg rounded-lg px-4 py-3 flex items-center gap-3 pointer-events-auto">
+            <span className="text-sm font-medium">
+              {selectedIds.size} selected
+            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={clearSelection}>
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+              <Button size="sm" onClick={() => setBulkOpen(true)}>
+                <PencilIcon className="h-4 w-4 mr-1" />
+                Bulk edit
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <BulkEditDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        count={selectedIds.size}
+        categories={categories}
+        vendors={vendors}
+        isSaving={isBulkUpdating}
+        onApply={(changes) => {
+          bulkUpdateItems(
+            { ids: Array.from(selectedIds), changes },
+            {
+              onSuccess: () => {
+                setBulkOpen(false);
+                clearSelection();
+              },
+            },
+          );
+        }}
+      />
     </Layout>
   );
 };
