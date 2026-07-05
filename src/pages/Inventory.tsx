@@ -213,15 +213,31 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search by Item #, Name or Category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search by Item #, Name or Category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  triggerSearch();
+                }
+              }}
+              className="pl-9"
+            />
+          </div>
+          <Button onClick={triggerSearch} size="sm">
+            <Search className="h-4 w-4 mr-1" />
+            Search
+          </Button>
+          {appliedQuery.trim() && (
+            <Button variant="outline" size="sm" onClick={clearSearch}>
+              Clear
+            </Button>
+          )}
         </div>
 
         {filteredItems.length === 0 ? (
