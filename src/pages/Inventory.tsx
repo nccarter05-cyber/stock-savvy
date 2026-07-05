@@ -359,10 +359,18 @@ const Inventory = () => {
                     return (
                       <TableRow 
                         key={item.id} 
-                        className="cursor-pointer hover:bg-accent/50 transition-colors"
+                        className={`cursor-pointer hover:bg-accent/50 transition-colors ${selectedIds.has(item.id) ? 'bg-accent/40' : ''}`}
                         onClick={() => navigate(`/edit-item/${item.id}`)}
                       >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(item.id)}
+                            onCheckedChange={() => toggleSelected(item.id)}
+                            aria-label={`Select ${item.inventory_name}`}
+                          />
+                        </TableCell>
                         <TableCell className="font-mono text-sm">{item.item_number || '-'}</TableCell>
+
                         <TableCell className="font-medium">{item.inventory_name}</TableCell>
                         <TableCell>
                           {item.category ? (
