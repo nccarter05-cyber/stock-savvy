@@ -394,6 +394,104 @@ export const useInventory = () => {
     },
   });
 
+  const bulkUpdateItemsMutation = useMutation({
+    mutationFn: async ({
+      ids,
+      changes,
+    }: {
+      ids: string[];
+      changes: Partial<{
+        item_number: string | null;
+        category: string | null;
+        unit: string | null;
+        cost_per_unit: number | null;
+        last_shipment_date: string | null;
+        last_shipment_quantity: number | null;
+        vendor_name: string | null;
+        current_quantity: number;
+        inventory_minimum: number | null;
+        inventory_maximum: number | null;
+      }>;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      if (ids.length === 0) return;
+
+      const infoUpdate: Record<string, unknown> = {};
+      const qtyUpdate: Record<string, unknown> = {};
+
+      if ('item_number' in changes) infoUpdate.item_number = changes.item_number || null;
+      if ('category' in changes) infoUpdate.category = changes.category || null;
+      if ('unit' in changes) infoUpdate.unit = changes.unit || null;
+      if ('cost_per_unit' in changes) infoUpdate.cost_per_unit = changes.cost_per_unit ?? null;
+      if ('last_shipment_date' in changes) infoUpdate.last_shipment_date = changes.last_shipment_date || null;
+      if ('last_shipment_quantity' in changes) infoUpdate.last_shipment_quantity = changes.last_shipment_quantity ?? null;
+
+      if ('current_quantity' in changes) qtyUpdate.current_quantity = Math.max(0, changes.current_quantity ?? 0);
+      if ('inventory_minimum' in changes) qtyUpdate.inventory_minimum = changes.inventory_minimum ?? null;
+      if ('inventory_maximum' in changes) qtyUpdate.inventory_maximum = changes.inventory_maximum ?? null;
+
+      if ('vendor_name' in changes) {
+        let vendorId: string | null = null;
+        const name = changes.vendor_name?.trim();
+        if (name) {
+          const { data: existingVendor } = await supabase
+            .from('vendor_info')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('vendor_name', name)
+            .maybeSingle();
+          if (existingVendor) {
+            vendorId = existingVendor.id;
+          } else {
+            const { data: newVendor, error: vErr } = await supabase
+              .from('vendor_info')
+              .insert({ user_id: user.id, vendor_name: name })
+              .select('id')
+              .single();
+            if (vErr) throw vErr;
+            vendorId = newVendor.id;
+          }
+        }
+        infoUpdate.vendor_id = vendorId;
+        qtyUpdate.vendor_id = vendorId;
+      }
+
+      if (Object.keys(infoUpdate).length > 0) {
+        const { error } = await supabase
+          .from('inventory_info')
+          .update(infoUpdate)
+          .in('id', ids);
+        if (error) throw error;
+      }
+
+      if (Object.keys(qtyUpdate).length > 0) {
+        const { error } = await supabase
+          .from('inventory_quantity')
+          .update(qtyUpdate)
+          .in('inventory_id', ids);
+        if (error) throw error;
+      }
+
+      return ids.length;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
+      toast({
+        title: 'Bulk update complete',
+        description: `Updated ${count ?? 0} item${count === 1 ? '' : 's'}.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update items',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const calculateTotalValue = () => {
     return items.reduce((total, item) => {
       const quantity = item.current_quantity || 0;
