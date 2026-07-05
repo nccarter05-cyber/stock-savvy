@@ -403,10 +403,12 @@ export const useInventory = () => {
   };
 
   const getLowStockItems = () => {
-    return items.filter(item => {
-      const min = item.inventory_minimum || 0;
-      return item.current_quantity <= min;
-    });
+    return items
+      .filter(item => {
+        const min = item.inventory_minimum || 0;
+        return item.current_quantity <= min;
+      })
+      .sort((a, b) => a.inventory_name.localeCompare(b.inventory_name));
   };
 
   return {
