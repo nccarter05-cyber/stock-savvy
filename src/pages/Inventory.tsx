@@ -113,24 +113,35 @@ const Inventory = () => {
     const minLevel = item.inventory_minimum || 0;
     const isLowStock = quantity <= minLevel;
 
+    const isSelected = selectedIds.has(item.id);
     return (
       <Card 
-        className={`cursor-pointer transition-colors hover:bg-accent/50 ${isLowStock ? 'border-destructive' : ''}`}
+        className={`cursor-pointer transition-colors hover:bg-accent/50 ${isLowStock ? 'border-destructive' : ''} ${isSelected ? 'ring-2 ring-primary' : ''}`}
         onClick={() => navigate(`/edit-item/${item.id}`)}
       >
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
-            <div className="flex-1">
-              {item.item_number && (
-                <p className="text-xs text-muted-foreground">Item #: {item.item_number}</p>
-              )}
-              <h3 className="font-semibold text-foreground">{item.inventory_name}</h3>
-              {item.category && (
-                <Badge variant="secondary" className={`mt-1 ${getCategoryColor(item.category)}`}>
-                  {item.category}
-                </Badge>
-              )}
+            <div className="flex items-start gap-3 flex-1">
+              <div onClick={(e) => e.stopPropagation()} className="pt-1">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleSelected(item.id)}
+                  aria-label={`Select ${item.inventory_name}`}
+                />
+              </div>
+              <div className="flex-1">
+                {item.item_number && (
+                  <p className="text-xs text-muted-foreground">Item #: {item.item_number}</p>
+                )}
+                <h3 className="font-semibold text-foreground">{item.inventory_name}</h3>
+                {item.category && (
+                  <Badge variant="secondary" className={`mt-1 ${getCategoryColor(item.category)}`}>
+                    {item.category}
+                  </Badge>
+                )}
+              </div>
             </div>
+
             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
               <Button 
                 variant="ghost" 
