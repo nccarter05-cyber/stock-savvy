@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2, Plus, Minus, Pencil, Search } from 'lucide-react';
+import { Trash2, Plus, Minus, Pencil, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
+import BulkEditDialog from '@/components/BulkEditDialog';
 
 const Inventory = () => {
   const navigate = useNavigate();
-  const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity } = useInventory();
+  const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity, bulkUpdateItems, isBulkUpdating } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedQuery, setAppliedQuery] = useState('');
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+
 
   const filteredItems = appliedQuery.trim()
     ? items.filter((item) => {
@@ -42,6 +47,42 @@ const Inventory = () => {
   const setAdjustAmount = (itemId: string, value: number) => {
     setAdjustAmounts(prev => ({ ...prev, [itemId]: Math.max(1, value) }));
   };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allFilteredSelected = filteredItems.length > 0 && filteredItems.every((i) => selectedIds.has(i.id));
+  const someFilteredSelected = filteredItems.some((i) => selectedIds.has(i.id));
+
+  const toggleSelectAllFiltered = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) {
+        filteredItems.forEach((i) => next.delete(i.id));
+      } else {
+        filteredItems.forEach((i) => next.add(i.id));
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const categories = useMemo(
+    () => Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c))).sort(),
+    [items],
+  );
+  const vendors = useMemo(
+    () => Array.from(new Set(items.map((i) => i.vendor_name).filter((v): v is string => !!v))).sort(),
+    [items],
+  );
+
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -72,24 +113,35 @@ const Inventory = () => {
     const minLevel = item.inventory_minimum || 0;
     const isLowStock = quantity <= minLevel;
 
+    const isSelected = selectedIds.has(item.id);
     return (
       <Card 
-        className={`cursor-pointer transition-colors hover:bg-accent/50 ${isLowStock ? 'border-destructive' : ''}`}
+        className={`cursor-pointer transition-colors hover:bg-accent/50 ${isLowStock ? 'border-destructive' : ''} ${isSelected ? 'ring-2 ring-primary' : ''}`}
         onClick={() => navigate(`/edit-item/${item.id}`)}
       >
         <CardContent className="p-4">
           <div className="flex justify-between items-start mb-3">
-            <div className="flex-1">
-              {item.item_number && (
-                <p className="text-xs text-muted-foreground">Item #: {item.item_number}</p>
-              )}
-              <h3 className="font-semibold text-foreground">{item.inventory_name}</h3>
-              {item.category && (
-                <Badge variant="secondary" className={`mt-1 ${getCategoryColor(item.category)}`}>
-                  {item.category}
-                </Badge>
-              )}
+            <div className="flex items-start gap-3 flex-1">
+              <div onClick={(e) => e.stopPropagation()} className="pt-1">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleSelected(item.id)}
+                  aria-label={`Select ${item.inventory_name}`}
+                />
+              </div>
+              <div className="flex-1">
+                {item.item_number && (
+                  <p className="text-xs text-muted-foreground">Item #: {item.item_number}</p>
+                )}
+                <h3 className="font-semibold text-foreground">{item.inventory_name}</h3>
+                {item.category && (
+                  <Badge variant="secondary" className={`mt-1 ${getCategoryColor(item.category)}`}>
+                    {item.category}
+                  </Badge>
+                )}
+              </div>
             </div>
+
             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
               <Button 
                 variant="ghost" 
@@ -252,7 +304,17 @@ const Inventory = () => {
         ) : (
           <>
             {/* Mobile card layout */}
-            <div className="space-y-3 md:hidden">
+            <div className="md:hidden space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <Checkbox
+                  checked={allFilteredSelected}
+                  onCheckedChange={toggleSelectAllFiltered}
+                  aria-label="Select all"
+                />
+                <span className="text-sm text-muted-foreground">
+                  Select all ({filteredItems.length})
+                </span>
+              </div>
               {filteredItems.map((item) => (
                 <MobileItemCard key={item.id} item={item} />
               ))}
@@ -263,6 +325,13 @@ const Inventory = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleSelectAllFiltered}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
                     <TableHead>Item #</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
@@ -279,6 +348,7 @@ const Inventory = () => {
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {filteredItems.map((item) => {
                     const quantity = item.current_quantity || 0;
@@ -289,10 +359,18 @@ const Inventory = () => {
                     return (
                       <TableRow 
                         key={item.id} 
-                        className="cursor-pointer hover:bg-accent/50 transition-colors"
+                        className={`cursor-pointer hover:bg-accent/50 transition-colors ${selectedIds.has(item.id) ? 'bg-accent/40' : ''}`}
                         onClick={() => navigate(`/edit-item/${item.id}`)}
                       >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(item.id)}
+                            onCheckedChange={() => toggleSelected(item.id)}
+                            aria-label={`Select ${item.inventory_name}`}
+                          />
+                        </TableCell>
                         <TableCell className="font-mono text-sm">{item.item_number || '-'}</TableCell>
+
                         <TableCell className="font-medium">{item.inventory_name}</TableCell>
                         <TableCell>
                           {item.category ? (
@@ -380,6 +458,46 @@ const Inventory = () => {
           </>
         )}
       </div>
+
+      {selectedIds.size > 0 && (
+        <div className="fixed left-0 right-0 bottom-16 md:bottom-4 z-40 px-4 pointer-events-none">
+          <div className="mx-auto max-w-3xl bg-card border shadow-lg rounded-lg px-4 py-3 flex items-center gap-3 pointer-events-auto">
+            <span className="text-sm font-medium">
+              {selectedIds.size} selected
+            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={clearSelection}>
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+              <Button size="sm" onClick={() => setBulkOpen(true)}>
+                <Pencil className="h-4 w-4 mr-1" />
+                Bulk edit
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <BulkEditDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        count={selectedIds.size}
+        categories={categories}
+        vendors={vendors}
+        isSaving={isBulkUpdating}
+        onApply={(changes) => {
+          bulkUpdateItems(
+            { ids: Array.from(selectedIds), changes },
+            {
+              onSuccess: () => {
+                setBulkOpen(false);
+                clearSelection();
+              },
+            },
+          );
+        }}
+      />
     </Layout>
   );
 };
