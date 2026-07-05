@@ -304,7 +304,17 @@ const Inventory = () => {
         ) : (
           <>
             {/* Mobile card layout */}
-            <div className="space-y-3 md:hidden">
+            <div className="md:hidden space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <Checkbox
+                  checked={allFilteredSelected}
+                  onCheckedChange={toggleSelectAllFiltered}
+                  aria-label="Select all"
+                />
+                <span className="text-sm text-muted-foreground">
+                  Select all ({filteredItems.length})
+                </span>
+              </div>
               {filteredItems.map((item) => (
                 <MobileItemCard key={item.id} item={item} />
               ))}
@@ -315,6 +325,13 @@ const Inventory = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={allFilteredSelected}
+                        onCheckedChange={toggleSelectAllFiltered}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
                     <TableHead>Item #</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
@@ -331,6 +348,7 @@ const Inventory = () => {
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {filteredItems.map((item) => {
                     const quantity = item.current_quantity || 0;
