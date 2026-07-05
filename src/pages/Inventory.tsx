@@ -280,7 +280,7 @@ const Inventory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => {
+                  {filteredItems.map((item) => {
                     const quantity = item.current_quantity || 0;
                     const costPerUnit = item.cost_per_unit || 0;
                     const totalValue = quantity * costPerUnit;
