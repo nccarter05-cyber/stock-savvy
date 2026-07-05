@@ -14,11 +14,12 @@ const Inventory = () => {
   const navigate = useNavigate();
   const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
 
-  const filteredItems = searchQuery.trim()
+  const filteredItems = appliedQuery.trim()
     ? items.filter((item) => {
-        const q = searchQuery.toLowerCase();
+        const q = appliedQuery.toLowerCase();
         return (
           (item.item_number?.toLowerCase().includes(q) ?? false) ||
           item.inventory_name.toLowerCase().includes(q) ||
@@ -26,6 +27,15 @@ const Inventory = () => {
         );
       })
     : items;
+
+  const triggerSearch = () => {
+    setAppliedQuery(searchQuery);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setAppliedQuery('');
+  };
 
   const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
   
@@ -203,21 +213,37 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search by Item #, Name or Category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search by Item #, Name or Category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  triggerSearch();
+                }
+              }}
+              className="pl-9"
+            />
+          </div>
+          <Button onClick={triggerSearch} size="sm">
+            <Search className="h-4 w-4 mr-1" />
+            Search
+          </Button>
+          {appliedQuery.trim() && (
+            <Button variant="outline" size="sm" onClick={clearSearch}>
+              Clear
+            </Button>
+          )}
         </div>
 
         {filteredItems.length === 0 ? (
           <div className="border rounded-lg bg-card p-8 md:p-12 text-center">
             <p className="text-muted-foreground mb-4">
-              {searchQuery.trim() ? 'No matching items found' : 'No inventory items yet'}
+              {appliedQuery.trim() ? 'No matching items found' : 'No inventory items yet'}
             </p>
             <Button onClick={() => navigate('/add-item')}>
               {searchQuery.trim() ? 'Add New Item' : 'Add Your First Item'}
@@ -254,7 +280,7 @@ const Inventory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => {
+                  {filteredItems.map((item) => {
                     const quantity = item.current_quantity || 0;
                     const costPerUnit = item.cost_per_unit || 0;
                     const totalValue = quantity * costPerUnit;
