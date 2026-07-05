@@ -14,11 +14,12 @@ const Inventory = () => {
   const navigate = useNavigate();
   const { items, isLoading, deleteItem, clearAllItems, isClearingAll, updateQuantity } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
 
-  const filteredItems = searchQuery.trim()
+  const filteredItems = appliedQuery.trim()
     ? items.filter((item) => {
-        const q = searchQuery.toLowerCase();
+        const q = appliedQuery.toLowerCase();
         return (
           (item.item_number?.toLowerCase().includes(q) ?? false) ||
           item.inventory_name.toLowerCase().includes(q) ||
@@ -26,6 +27,15 @@ const Inventory = () => {
         );
       })
     : items;
+
+  const triggerSearch = () => {
+    setAppliedQuery(searchQuery);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setAppliedQuery('');
+  };
 
   const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
   
