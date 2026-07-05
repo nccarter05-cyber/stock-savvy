@@ -243,7 +243,7 @@ const Inventory = () => {
         {filteredItems.length === 0 ? (
           <div className="border rounded-lg bg-card p-8 md:p-12 text-center">
             <p className="text-muted-foreground mb-4">
-              {searchQuery.trim() ? 'No matching items found' : 'No inventory items yet'}
+              {appliedQuery.trim() ? 'No matching items found' : 'No inventory items yet'}
             </p>
             <Button onClick={() => navigate('/add-item')}>
               {searchQuery.trim() ? 'Add New Item' : 'Add Your First Item'}
