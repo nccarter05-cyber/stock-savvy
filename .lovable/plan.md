@@ -1,46 +1,34 @@
-## Bulk Edit on Inventory Page
+## Problem
 
-Add multi-select and a bulk edit dialog to `/inventory` so several items can be updated at once.
+`supabase/functions/scan-invoice/index.ts` has no auth check. Anyone on the internet can hit the endpoint and burn Lovable AI credits.
 
-### Selection UX
-- Add a leading checkbox column on the desktop table and a checkbox on each mobile card (always visible).
-- Header row / top of mobile list: a "Select all" checkbox that toggles all currently `filteredItems`.
-- When 1+ items are selected, a sticky action bar appears at the bottom of the page above the nav with:
-  - "N selected" text
-  - "Bulk edit" button (opens dialog)
-  - "Clear selection" button
+## Fix
 
-### Bulk Edit Dialog
-A single dialog with one field per attribute. Each field has a "Change this field" checkbox next to it — only checked fields are applied. This keeps the "set same value for all" model while letting the user edit one or many fields in one pass.
+Add a JWT validation block at the top of the handler (right after the OPTIONS/CORS check), following the standard Cloud pattern for `verify_jwt = false` functions.
 
-Editable fields:
-- Item # (text)
-- Category (text with datalist of existing categories)
-- Quantity (number, sets current_quantity)
-- Unit (text)
-- Min Level (number)
-- Max Level (number)
-- Cost/Unit (number)
-- Last Shipment (date)
-- Quantity Received (number, writes to last_shipment_quantity)
-- Supplier (text with datalist of existing vendors; missing vendor auto-created, matching existing add/edit behavior)
+### Changes to `supabase/functions/scan-invoice/index.ts`
 
-Buttons: Cancel, Apply to N items. On apply, show a confirmation toast with count updated / count failed.
+1. Import `createClient` from `npm:@supabase/supabase-js@2`.
+2. After the OPTIONS preflight, before reading the body:
+   - Read the `Authorization` header; if missing or not `Bearer …`, return `401`.
+   - Create a Supabase client using `SUPABASE_URL` + `SUPABASE_ANON_KEY` with the incoming Authorization header.
+   - Call `supabase.auth.getClaims(token)`; if error or no claims, return `401`.
+   - Keep `data.claims.sub` available (useful for future rate limiting / logging).
+3. Everything else (image validation, AI gateway call, response shaping) stays the same.
 
-Note on Item #: setting the same Item # on multiple rows is allowed at the schema level today; we'll warn in the dialog ("Item # is usually unique — this will set the same value on all selected items") but still permit it.
+### Why this works
 
-### Data / Hook Changes
-Add a `bulkUpdateItems` mutation in `src/hooks/useInventory.ts`:
-- Input: `{ ids: string[], changes: Partial<{ item_number, category, unit, cost_per_unit, last_shipment_date, last_shipment_quantity, vendor_name, current_quantity, inventory_minimum, inventory_maximum }> }`.
-- Resolve `vendor_name` → `vendor_id` once (lookup or create), same logic as `updateItemMutation`.
-- Split changes into `inventory_info` fields and `inventory_quantity` fields.
-- Issue two Supabase updates using `.in('id', ids)` / `.in('inventory_id', ids)` scoped by the current team (RLS already enforces team scope).
-- Invalidate the `inventory` and `vendors` query keys and toast success.
+- The frontend already calls the function via `supabase.functions.invoke('scan-invoice', …)`, which automatically attaches the logged-in user's JWT — no client-side changes needed.
+- `getClaims` cryptographically verifies the token against the project's JWKS, so unauthenticated callers are rejected before any AI gateway request is made.
+- No `supabase/config.toml` change required; the function keeps its default `verify_jwt = false` and validates in-code (per current Cloud pattern).
 
-### Files
-- `src/pages/Inventory.tsx` — checkboxes, select-all, sticky action bar, dialog trigger, bulk edit dialog component (kept inline or in a new `src/components/BulkEditDialog.tsx` if it grows past ~150 lines).
-- `src/hooks/useInventory.ts` — add `bulkUpdateItems` mutation and expose it.
+### Out of scope (can be follow-ups if desired)
 
-### Out of Scope
-- Bulk delete (already possible per-item; can be added later if wanted).
-- Per-item different values in one pass (rejected model).
+- Per-user rate limiting (e.g. N scans per hour) — would need a small table + check.
+- Team-scoped quotas.
+- Logging scan events for audit.
+
+### Verification
+
+- Curl the deployed function with no `Authorization` → expect `401`.
+- Use the app while signed in → scan flow works unchanged.
