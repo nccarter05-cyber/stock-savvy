@@ -113,13 +113,8 @@ const AddItem = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="unit">Unit</Label>
-                  <Select value={unit} onValueChange={setUnit}>
+                  <Label htmlFor="unit">Base Unit</Label>
+                  <Select value={unit} onValueChange={(v) => { setUnit(v); if (!displayUnit) setDisplayUnit(v); }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -129,22 +124,67 @@ const AddItem = () => {
                       <SelectItem value="case">case</SelectItem>
                       <SelectItem value="each">each</SelectItem>
                       <SelectItem value="gallon">gallon</SelectItem>
+                      <SelectItem value="ml">ml</SelectItem>
+                      <SelectItem value="l">l</SelectItem>
+                      <SelectItem value="g">g</SelectItem>
+                      <SelectItem value="kg">kg</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">Stock is stored in this unit.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Display Unit</Label>
+                  <Select value={displayUnit} onValueChange={setDisplayUnit} disabled={!unit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Same as base" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(u => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">How this item appears in lists.</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {unit && (
+                <PackUnitsEditor baseUnit={unit} value={packUnits} onChange={setPackUnits} />
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Entered in</Label>
+                  <Select value={entryUnit || (displayUnit || unit)} onValueChange={setEntryUnit} disabled={!unit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(u => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="parLevel">Par Level</Label>
                   <Input id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0" />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
-                  <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" />
-                </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
+                <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" />
+                <p className="text-xs text-muted-foreground">
+                  Quantity, Par, Low Stock and Qty Received are all entered in the unit selected above and converted to the base unit for storage.
+                </p>
+              </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="cost">Cost Per Unit</Label>
