@@ -175,9 +175,17 @@ const Reports = () => {
                           <TableRow key={r.id}>
                             <TableCell className="font-mono text-xs">{r.item_number || '-'}</TableCell>
                             <TableCell className="font-medium">{r.inventory_name}</TableCell>
-                            <TableCell className="text-right">{r.current_quantity}</TableCell>
-                            <TableCell className="text-right">{r.inventory_minimum}</TableCell>
-                            <TableCell className="text-right font-bold">{r.needed}</TableCell>
+                            <TableCell className="text-right">
+                              {formatQty(r.current_quantity, r.base_unit, r.default_display_unit, r.pack_units)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {r.inventory_minimum != null
+                                ? formatQty(r.inventory_minimum, r.base_unit, r.default_display_unit, r.pack_units)
+                                : '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-bold">
+                              {r.order_qty} {r.order_unit}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
