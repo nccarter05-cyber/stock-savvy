@@ -11,6 +11,7 @@ import { Trash2, Plus, Minus, Pencil, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '@/hooks/useInventory';
 import BulkEditDialog from '@/components/BulkEditDialog';
+import { formatQty } from '@/lib/units';
 
 const Inventory = () => {
   const navigate = useNavigate();
