@@ -319,6 +319,9 @@ export const useInventory = () => {
       inventory_name: string;
       category?: string | null;
       unit?: string | null;
+      base_unit?: string | null;
+      default_display_unit?: string | null;
+      pack_units?: PackUnitList;
       cost_per_unit?: number | null;
       last_shipment_date?: string | null;
       last_shipment_quantity?: number | null;
@@ -364,17 +367,22 @@ export const useInventory = () => {
       }
 
       // Update inventory_info table
+      const infoPatch: Record<string, unknown> = {
+        inventory_name: updatedItem.inventory_name,
+        category: updatedItem.category || null,
+        unit: updatedItem.unit || null,
+        cost_per_unit: updatedItem.cost_per_unit ?? null,
+        last_shipment_date: updatedItem.last_shipment_date || null,
+        last_shipment_quantity: updatedItem.last_shipment_quantity ?? null,
+        vendor_id: vendorId,
+      };
+      if ('base_unit' in updatedItem) infoPatch.base_unit = updatedItem.base_unit || null;
+      if ('default_display_unit' in updatedItem) infoPatch.default_display_unit = updatedItem.default_display_unit || null;
+      if ('pack_units' in updatedItem) infoPatch.pack_units = updatedItem.pack_units ?? [];
+
       const { error: inventoryError } = await supabase
         .from('inventory_info')
-        .update({
-          inventory_name: updatedItem.inventory_name,
-          category: updatedItem.category || null,
-          unit: updatedItem.unit || null,
-          cost_per_unit: updatedItem.cost_per_unit ?? null,
-          last_shipment_date: updatedItem.last_shipment_date || null,
-          last_shipment_quantity: updatedItem.last_shipment_quantity ?? null,
-          vendor_id: vendorId,
-        })
+        .update(infoPatch as any)
         .eq('id', updatedItem.id);
 
       if (inventoryError) throw inventoryError;
