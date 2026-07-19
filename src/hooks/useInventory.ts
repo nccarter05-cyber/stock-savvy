@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { normalizePackUnits, type PackUnitList } from '@/lib/units';
 
 export interface InventoryItemWithQuantity {
   id: string;
@@ -8,6 +9,9 @@ export interface InventoryItemWithQuantity {
   inventory_name: string;
   category: string | null;
   unit: string | null;
+  base_unit: string | null;
+  default_display_unit: string | null;
+  pack_units: PackUnitList;
   cost_per_unit: number | null;
   last_shipment_date: string | null;
   last_shipment_quantity: number | null;
@@ -33,7 +37,7 @@ export const useInventory = () => {
 
       // Fetch inventory with quantities and vendor info
       // RLS policies now handle team-based access, so we don't filter by user_id
-      const { data: inventoryData, error: inventoryError } = await supabase
+      const { data: inventoryData, error: inventoryError } = await (supabase
         .from('inventory_info')
         .select(`
           id,
@@ -41,6 +45,9 @@ export const useInventory = () => {
           inventory_name,
           category,
           unit,
+          base_unit,
+          default_display_unit,
+          pack_units,
           cost_per_unit,
           last_shipment_date,
           last_shipment_quantity,
@@ -54,7 +61,7 @@ export const useInventory = () => {
             inventory_maximum,
             inventory_minimum
           )
-        `);
+        ` as any) as any);
 
       if (inventoryError) throw inventoryError;
 
@@ -65,6 +72,9 @@ export const useInventory = () => {
         inventory_name: item.inventory_name,
         category: item.category,
         unit: item.unit,
+        base_unit: item.base_unit ?? item.unit ?? null,
+        default_display_unit: item.default_display_unit ?? item.unit ?? null,
+        pack_units: normalizePackUnits(item.pack_units),
         cost_per_unit: item.cost_per_unit,
         last_shipment_date: item.last_shipment_date,
         last_shipment_quantity: item.last_shipment_quantity,
@@ -84,6 +94,9 @@ export const useInventory = () => {
       inventory_name: string;
       category?: string | null;
       unit?: string | null;
+      base_unit?: string | null;
+      default_display_unit?: string | null;
+      pack_units?: PackUnitList;
       cost_per_unit?: number | null;
       last_shipment_date?: string | null;
       last_shipment_quantity?: number | null;
@@ -136,11 +149,14 @@ export const useInventory = () => {
           inventory_name: newItem.inventory_name,
           category: newItem.category || null,
           unit: newItem.unit || null,
+          base_unit: newItem.base_unit || newItem.unit || null,
+          default_display_unit: newItem.default_display_unit || newItem.unit || null,
+          pack_units: (newItem.pack_units ?? []) as any,
           cost_per_unit: newItem.cost_per_unit ?? null,
           last_shipment_date: newItem.last_shipment_date || null,
           last_shipment_quantity: newItem.last_shipment_quantity ?? null,
           vendor_id: vendorId,
-        })
+        } as any)
         .select('id')
         .single();
 
@@ -303,6 +319,9 @@ export const useInventory = () => {
       inventory_name: string;
       category?: string | null;
       unit?: string | null;
+      base_unit?: string | null;
+      default_display_unit?: string | null;
+      pack_units?: PackUnitList;
       cost_per_unit?: number | null;
       last_shipment_date?: string | null;
       last_shipment_quantity?: number | null;
@@ -348,17 +367,22 @@ export const useInventory = () => {
       }
 
       // Update inventory_info table
+      const infoPatch: Record<string, unknown> = {
+        inventory_name: updatedItem.inventory_name,
+        category: updatedItem.category || null,
+        unit: updatedItem.unit || null,
+        cost_per_unit: updatedItem.cost_per_unit ?? null,
+        last_shipment_date: updatedItem.last_shipment_date || null,
+        last_shipment_quantity: updatedItem.last_shipment_quantity ?? null,
+        vendor_id: vendorId,
+      };
+      if ('base_unit' in updatedItem) infoPatch.base_unit = updatedItem.base_unit || null;
+      if ('default_display_unit' in updatedItem) infoPatch.default_display_unit = updatedItem.default_display_unit || null;
+      if ('pack_units' in updatedItem) infoPatch.pack_units = updatedItem.pack_units ?? [];
+
       const { error: inventoryError } = await supabase
         .from('inventory_info')
-        .update({
-          inventory_name: updatedItem.inventory_name,
-          category: updatedItem.category || null,
-          unit: updatedItem.unit || null,
-          cost_per_unit: updatedItem.cost_per_unit ?? null,
-          last_shipment_date: updatedItem.last_shipment_date || null,
-          last_shipment_quantity: updatedItem.last_shipment_quantity ?? null,
-          vendor_id: vendorId,
-        })
+        .update(infoPatch as any)
         .eq('id', updatedItem.id);
 
       if (inventoryError) throw inventoryError;

@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { useInventory } from "@/hooks/useInventory";
 import { useVendors } from "@/hooks/useVendors";
 import { useState } from "react";
+import PackUnitsEditor from "@/components/PackUnitsEditor";
+import { toBase, unitOptions, type PackUnit } from "@/lib/units";
 
 const NEW_VENDOR = "__new__";
 
@@ -19,6 +21,9 @@ const AddItem = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [category, setCategory] = useState("");
   const [unit, setUnit] = useState("");
+  const [displayUnit, setDisplayUnit] = useState("");
+  const [packUnits, setPackUnits] = useState<PackUnit[]>([]);
+  const [entryUnit, setEntryUnit] = useState("");
   const [vendorId, setVendorId] = useState<string>("");
   const [newVendorName, setNewVendorName] = useState("");
 
@@ -35,19 +40,31 @@ const AddItem = () => {
     const shipQtyVal = parseFloat(formData.get("lastShipmentQuantity") as string);
     const shipDate = formData.get("lastShipmentDate") as string;
 
+    const baseUnit = unit || null;
+    const displayU = displayUnit || baseUnit;
+    const enteredIn = entryUnit || displayU || baseUnit;
+
+    const qtyInBase = isNaN(qtyVal) ? 0 : toBase(qtyVal, enteredIn, baseUnit, packUnits);
+    const shipInBase = isNaN(shipQtyVal) ? null : toBase(shipQtyVal, enteredIn, baseUnit, packUnits);
+    const parInBase = isNaN(parVal) ? null : toBase(parVal, enteredIn, baseUnit, packUnits);
+    const lowInBase = isNaN(lowVal) ? null : toBase(lowVal, enteredIn, baseUnit, packUnits);
+
     const isNewVendor = vendorId === NEW_VENDOR;
     const newItem = {
       inventory_name: formData.get("name") as string,
       category: category || null,
-      unit: unit || null,
+      unit: baseUnit,
+      base_unit: baseUnit,
+      default_display_unit: displayU,
+      pack_units: packUnits,
       cost_per_unit: isNaN(costVal) ? null : costVal,
       last_shipment_date: shipDate || null,
-      last_shipment_quantity: isNaN(shipQtyVal) ? null : shipQtyVal,
+      last_shipment_quantity: shipInBase,
       vendor_id: !isNewVendor && vendorId ? vendorId : null,
       vendor_name: isNewVendor ? (newVendorName.trim() || null) : null,
-      current_quantity: isNaN(qtyVal) ? 0 : qtyVal,
-      inventory_maximum: isNaN(parVal) ? null : parVal,
-      inventory_minimum: isNaN(lowVal) ? null : lowVal,
+      current_quantity: qtyInBase,
+      inventory_maximum: parInBase,
+      inventory_minimum: lowInBase,
     };
 
     addItem(newItem, {
@@ -59,6 +76,8 @@ const AddItem = () => {
       },
     });
   };
+
+  const availableUnits = unitOptions(unit || null, packUnits);
 
   return (
     <Layout>
@@ -94,13 +113,8 @@ const AddItem = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="unit">Unit</Label>
-                  <Select value={unit} onValueChange={setUnit}>
+                  <Label htmlFor="unit">Base Unit</Label>
+                  <Select value={unit} onValueChange={(v) => { setUnit(v); if (!displayUnit) setDisplayUnit(v); }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -110,22 +124,67 @@ const AddItem = () => {
                       <SelectItem value="case">case</SelectItem>
                       <SelectItem value="each">each</SelectItem>
                       <SelectItem value="gallon">gallon</SelectItem>
+                      <SelectItem value="ml">ml</SelectItem>
+                      <SelectItem value="l">l</SelectItem>
+                      <SelectItem value="g">g</SelectItem>
+                      <SelectItem value="kg">kg</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">Stock is stored in this unit.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Display Unit</Label>
+                  <Select value={displayUnit} onValueChange={setDisplayUnit} disabled={!unit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Same as base" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(u => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">How this item appears in lists.</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {unit && (
+                <PackUnitsEditor baseUnit={unit} value={packUnits} onChange={setPackUnits} />
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="0" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Entered in</Label>
+                  <Select value={entryUnit || (displayUnit || unit)} onValueChange={setEntryUnit} disabled={!unit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(u => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="parLevel">Par Level</Label>
                   <Input id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0" />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
-                  <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" />
-                </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
+                <Input id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0" />
+                <p className="text-xs text-muted-foreground">
+                  Quantity, Par, Low Stock and Qty Received are all entered in the unit selected above and converted to the base unit for storage.
+                </p>
+              </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="cost">Cost Per Unit</Label>

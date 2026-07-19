@@ -16,42 +16,51 @@ export type Database = {
     Tables: {
       inventory_info: {
         Row: {
+          base_unit: string | null
           category: string | null
           cost_per_unit: number | null
           created_at: string | null
+          default_display_unit: string | null
           id: string
           inventory_name: string
           item_number: string | null
           last_shipment_date: string | null
           last_shipment_quantity: number | null
+          pack_units: Json
           unit: string | null
           updated_at: string | null
           user_id: string
           vendor_id: string | null
         }
         Insert: {
+          base_unit?: string | null
           category?: string | null
           cost_per_unit?: number | null
           created_at?: string | null
+          default_display_unit?: string | null
           id?: string
           inventory_name: string
           item_number?: string | null
           last_shipment_date?: string | null
           last_shipment_quantity?: number | null
+          pack_units?: Json
           unit?: string | null
           updated_at?: string | null
           user_id: string
           vendor_id?: string | null
         }
         Update: {
+          base_unit?: string | null
           category?: string | null
           cost_per_unit?: number | null
           created_at?: string | null
+          default_display_unit?: string | null
           id?: string
           inventory_name?: string
           item_number?: string | null
           last_shipment_date?: string | null
           last_shipment_quantity?: number | null
+          pack_units?: Json
           unit?: string | null
           updated_at?: string | null
           user_id?: string
