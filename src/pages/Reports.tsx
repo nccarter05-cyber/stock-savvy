@@ -5,9 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useInventory, type InventoryItemWithQuantity } from '@/hooks/useInventory';
 import { FileText, Printer, Download } from 'lucide-react';
+import { ceilToUnit, formatQty } from '@/lib/units';
 
 interface OrderRow extends InventoryItemWithQuantity {
-  needed: number;
+  needed_base: number;
+  order_qty: number;
+  order_unit: string;
 }
 
 const Reports = () => {
@@ -18,7 +21,11 @@ const Reports = () => {
   const grouped = useMemo(() => {
     const rows: OrderRow[] = items
       .filter(i => i.inventory_minimum != null && i.current_quantity < (i.inventory_minimum || 0))
-      .map(i => ({ ...i, needed: (i.inventory_minimum || 0) - i.current_quantity }));
+      .map(i => {
+        const needed_base = (i.inventory_minimum || 0) - i.current_quantity;
+        const { qty, unit } = ceilToUnit(needed_base, i.base_unit, i.default_display_unit, i.pack_units);
+        return { ...i, needed_base, order_qty: qty, order_unit: unit };
+      });
 
     const map = new Map<string, OrderRow[]>();
     for (const r of rows) {
@@ -31,9 +38,9 @@ const Reports = () => {
       .map(([vendor, list]) => ({
         vendor,
         items: list.sort((a, b) => a.inventory_name.localeCompare(b.inventory_name)),
-        subtotal: list.reduce((s, r) => s + r.needed, 0),
+        subtotal: list.reduce((s, r) => s + r.order_qty, 0),
       }));
-    const grandTotal = rows.reduce((s, r) => s + r.needed, 0);
+    const grandTotal = rows.reduce((s, r) => s + r.order_qty, 0);
     return { sections: sorted, grandTotal, totalItems: rows.length };
   }, [items]);
 
@@ -45,7 +52,7 @@ const Reports = () => {
   const handlePrint = () => window.print();
 
   const handleExportCSV = () => {
-    const header = ['Vendor', 'Item #', 'Item Name', 'Current Qty', 'Minimum', 'Need to Order'];
+    const header = ['Vendor', 'Item #', 'Item Name', 'Current', 'Minimum', 'Order Qty', 'Order Unit'];
     const escape = (v: any) => {
       const s = v == null ? '' : String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -57,9 +64,10 @@ const Reports = () => {
           section.vendor,
           r.item_number || '',
           r.inventory_name,
-          r.current_quantity,
-          r.inventory_minimum ?? '',
-          r.needed,
+          formatQty(r.current_quantity, r.base_unit, r.default_display_unit, r.pack_units),
+          r.inventory_minimum != null ? formatQty(r.inventory_minimum, r.base_unit, r.default_display_unit, r.pack_units) : '',
+          r.order_qty,
+          r.order_unit,
         ].map(escape).join(','));
       }
     }
