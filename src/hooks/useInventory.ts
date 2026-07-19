@@ -94,6 +94,9 @@ export const useInventory = () => {
       inventory_name: string;
       category?: string | null;
       unit?: string | null;
+      base_unit?: string | null;
+      default_display_unit?: string | null;
+      pack_units?: PackUnitList;
       cost_per_unit?: number | null;
       last_shipment_date?: string | null;
       last_shipment_quantity?: number | null;
@@ -146,11 +149,14 @@ export const useInventory = () => {
           inventory_name: newItem.inventory_name,
           category: newItem.category || null,
           unit: newItem.unit || null,
+          base_unit: newItem.base_unit || newItem.unit || null,
+          default_display_unit: newItem.default_display_unit || newItem.unit || null,
+          pack_units: (newItem.pack_units ?? []) as any,
           cost_per_unit: newItem.cost_per_unit ?? null,
           last_shipment_date: newItem.last_shipment_date || null,
           last_shipment_quantity: newItem.last_shipment_quantity ?? null,
           vendor_id: vendorId,
-        })
+        } as any)
         .select('id')
         .single();
 
