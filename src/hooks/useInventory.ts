@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { normalizePackUnits, type PackUnitList } from '@/lib/units';
 
 export interface InventoryItemWithQuantity {
   id: string;
@@ -8,6 +9,9 @@ export interface InventoryItemWithQuantity {
   inventory_name: string;
   category: string | null;
   unit: string | null;
+  base_unit: string | null;
+  default_display_unit: string | null;
+  pack_units: PackUnitList;
   cost_per_unit: number | null;
   last_shipment_date: string | null;
   last_shipment_quantity: number | null;
