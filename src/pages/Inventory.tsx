@@ -167,12 +167,12 @@ const Inventory = () => {
             <div>
               <span className="text-muted-foreground">Quantity:</span>
               <span className={`ml-1 font-medium ${isLowStock ? 'text-destructive' : 'text-foreground'}`}>
-                {quantity} {item.unit || ''}
+                {formatQty(quantity, item.base_unit, item.default_display_unit, item.pack_units)}
               </span>
             </div>
             <div>
               <span className="text-muted-foreground">Cost:</span>
-              <span className="ml-1 text-foreground">${costPerUnit.toFixed(2)}</span>
+              <span className="ml-1 text-foreground">${costPerUnit.toFixed(2)}{item.base_unit ? `/${item.base_unit}` : ''}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Value:</span>
@@ -180,11 +180,15 @@ const Inventory = () => {
             </div>
             <div>
               <span className="text-muted-foreground">Min:</span>
-              <span className="ml-1 text-foreground">{item.inventory_minimum || '-'}</span>
+              <span className="ml-1 text-foreground">
+                {item.inventory_minimum != null ? formatQty(item.inventory_minimum, item.base_unit, item.default_display_unit, item.pack_units) : '-'}
+              </span>
             </div>
             <div>
               <span className="text-muted-foreground">Max:</span>
-              <span className="ml-1 text-foreground">{item.inventory_maximum || '-'}</span>
+              <span className="ml-1 text-foreground">
+                {item.inventory_maximum != null ? formatQty(item.inventory_maximum, item.base_unit, item.default_display_unit, item.pack_units) : '-'}
+              </span>
             </div>
           </div>
 
