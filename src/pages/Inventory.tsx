@@ -388,7 +388,7 @@ const Inventory = () => {
                         </TableCell>
                         <TableCell>
                           <span className={quantity <= minLevel ? 'text-destructive font-semibold' : ''}>
-                            {quantity}
+                            {formatQty(quantity, item.base_unit, item.default_display_unit, item.pack_units)}
                           </span>
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
@@ -418,22 +418,29 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>{item.unit || '-'}</TableCell>
-                        <TableCell>{item.inventory_minimum || '-'}</TableCell>
-                        <TableCell>{item.inventory_maximum || '-'}</TableCell>
+                        <TableCell>{item.default_display_unit || item.base_unit || item.unit || '-'}</TableCell>
+                        <TableCell>
+                          {item.inventory_minimum != null
+                            ? formatQty(item.inventory_minimum, item.base_unit, item.default_display_unit, item.pack_units)
+                            : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {item.inventory_maximum != null
+                            ? formatQty(item.inventory_maximum, item.base_unit, item.default_display_unit, item.pack_units)
+                            : '-'}
+                        </TableCell>
                         <TableCell>${costPerUnit.toFixed(2)}</TableCell>
                         <TableCell>${totalValue.toFixed(2)}</TableCell>
                         <TableCell>
-                          {item.last_shipment_date 
+                          {item.last_shipment_date
                             ? new Date(item.last_shipment_date).toLocaleDateString()
                             : '-'
                           }
                         </TableCell>
                         <TableCell>
-                          {item.last_shipment_quantity 
-                            ? `${item.last_shipment_quantity} ${item.unit || ''}`
-                            : '-'
-                          }
+                          {item.last_shipment_quantity != null
+                            ? formatQty(item.last_shipment_quantity, item.base_unit, item.default_display_unit, item.pack_units)
+                            : '-'}
                         </TableCell>
                         <TableCell>{item.vendor_name || '-'}</TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
