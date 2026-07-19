@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useParams } from "react-router-dom";
 import { useInventory } from "@/hooks/useInventory";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import PackUnitsEditor from "@/components/PackUnitsEditor";
+import { toBase, unitOptions, convertQty, type PackUnit } from "@/lib/units";
 
 const EditItem = () => {
   const navigate = useNavigate();
@@ -15,6 +17,9 @@ const EditItem = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [category, setCategory] = useState("");
   const [unit, setUnit] = useState("");
+  const [displayUnit, setDisplayUnit] = useState("");
+  const [packUnits, setPackUnits] = useState<PackUnit[]>([]);
+  const [entryUnit, setEntryUnit] = useState("");
   const [formValues, setFormValues] = useState({
     name: "",
     quantity: "",
@@ -26,35 +31,47 @@ const EditItem = () => {
     lastShipmentQuantity: "",
   });
 
-  // Find the item from the cached items
   const item = items.find((i) => i.id === id);
 
-  // Pre-populate form when item loads
   useEffect(() => {
     if (item) {
+      const base = item.base_unit || item.unit || "";
+      const disp = item.default_display_unit || base;
+      const pkgs = item.pack_units || [];
       setCategory(item.category || "");
-      setUnit(item.unit || "");
+      setUnit(base);
+      setDisplayUnit(disp);
+      setPackUnits(pkgs);
+      setEntryUnit(disp);
+
+      // Present stored base-unit values in the display unit for editing.
+      const fmt = (v: number | null) => {
+        if (v == null) return "";
+        const c = disp && base ? convertQty(v, base, disp, base, pkgs) : v;
+        return (c ?? v).toString();
+      };
+
       setFormValues({
         name: item.inventory_name || "",
-        quantity: item.current_quantity?.toString() || "",
-        parLevel: item.inventory_maximum?.toString() || "",
-        lowStockThreshold: item.inventory_minimum?.toString() || "",
+        quantity: fmt(item.current_quantity),
+        parLevel: fmt(item.inventory_maximum),
+        lowStockThreshold: fmt(item.inventory_minimum),
         cost: item.cost_per_unit?.toString() || "",
         supplier: item.vendor_name || "",
         lastShipmentDate: item.last_shipment_date || "",
-        lastShipmentQuantity: item.last_shipment_quantity?.toString() || "",
+        lastShipmentQuantity: fmt(item.last_shipment_quantity),
       });
     }
   }, [item]);
 
+  const availableUnits = useMemo(() => unitOptions(unit || null, packUnits), [unit, packUnits]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!id) return;
-    
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-
     const costVal = parseFloat(formData.get("cost") as string);
     const qtyVal = parseFloat(formData.get("quantity") as string);
     const parVal = parseFloat(formData.get("parLevel") as string);
@@ -62,27 +79,32 @@ const EditItem = () => {
     const shipQtyVal = parseFloat(formData.get("lastShipmentQuantity") as string);
     const shipDate = formData.get("lastShipmentDate") as string;
 
+    const base = unit || null;
+    const disp = displayUnit || base;
+    const enteredIn = entryUnit || disp || base;
+
+    const inBase = (v: number) => toBase(v, enteredIn, base, packUnits);
+
     const updatedItem = {
       id,
       inventory_name: formData.get("name") as string,
       category: category || null,
-      unit: unit || null,
+      unit: base,
+      base_unit: base,
+      default_display_unit: disp,
+      pack_units: packUnits,
       cost_per_unit: isNaN(costVal) ? null : costVal,
       last_shipment_date: shipDate || null,
-      last_shipment_quantity: isNaN(shipQtyVal) ? null : shipQtyVal,
+      last_shipment_quantity: isNaN(shipQtyVal) ? null : inBase(shipQtyVal),
       vendor_name: (formData.get("supplier") as string) || null,
-      current_quantity: isNaN(qtyVal) ? 0 : qtyVal,
-      inventory_maximum: isNaN(parVal) ? null : parVal,
-      inventory_minimum: isNaN(lowVal) ? null : lowVal,
+      current_quantity: isNaN(qtyVal) ? 0 : inBase(qtyVal),
+      inventory_maximum: isNaN(parVal) ? null : inBase(parVal),
+      inventory_minimum: isNaN(lowVal) ? null : inBase(lowVal),
     };
 
     updateItem(updatedItem, {
-      onSuccess: () => {
-        navigate("/inventory");
-      },
-      onSettled: () => {
-        setIsSubmitting(false);
-      },
+      onSuccess: () => navigate("/inventory"),
+      onSettled: () => setIsSubmitting(false),
     });
   };
 
@@ -121,13 +143,13 @@ const EditItem = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Item Name</Label>
-                <Input 
-                  id="name" 
-                  name="name" 
-                  placeholder="Enter item name" 
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Enter item name"
                   value={formValues.name}
-                  onChange={(e) => setFormValues(prev => ({ ...prev, name: e.target.value }))}
-                  required 
+                  onChange={(e) => setFormValues(p => ({ ...p, name: e.target.value }))}
+                  required
                 />
               </div>
 
@@ -149,21 +171,8 @@ const EditItem = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input 
-                    id="quantity" 
-                    name="quantity" 
-                    type="number" 
-                    step="0.01" 
-                    placeholder="0" 
-                    value={formValues.quantity}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, quantity: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="unit">Unit</Label>
-                  <Select value={unit} onValueChange={setUnit}>
+                  <Label>Base Unit</Label>
+                  <Select value={unit} onValueChange={(v) => { setUnit(v); if (!displayUnit) setDisplayUnit(v); }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
@@ -173,85 +182,111 @@ const EditItem = () => {
                       <SelectItem value="case">case</SelectItem>
                       <SelectItem value="each">each</SelectItem>
                       <SelectItem value="gallon">gallon</SelectItem>
+                      <SelectItem value="ml">ml</SelectItem>
+                      <SelectItem value="l">l</SelectItem>
+                      <SelectItem value="g">g</SelectItem>
+                      <SelectItem value="kg">kg</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Stock is stored in this unit.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Display Unit</Label>
+                  <Select value={displayUnit} onValueChange={setDisplayUnit} disabled={!unit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Same as base" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(u => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {unit && (
+                <PackUnitsEditor baseUnit={unit} value={packUnits} onChange={setPackUnits} />
+              )}
+
+              <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="parLevel">Par Level</Label>
-                  <Input 
-                    id="parLevel" 
-                    name="parLevel" 
-                    type="number" 
-                    step="0.01" 
-                    placeholder="0" 
-                    value={formValues.parLevel}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, parLevel: e.target.value }))}
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity" name="quantity" type="number" step="0.01" placeholder="0"
+                    value={formValues.quantity}
+                    onChange={(e) => setFormValues(p => ({ ...p, quantity: e.target.value }))}
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
-                  <Input 
-                    id="lowStockThreshold" 
-                    name="lowStockThreshold" 
-                    type="number" 
-                    step="0.01" 
-                    placeholder="0" 
-                    value={formValues.lowStockThreshold}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, lowStockThreshold: e.target.value }))}
+                  <Label>Entered in</Label>
+                  <Select value={entryUnit || (displayUnit || unit)} onValueChange={setEntryUnit} disabled={!unit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableUnits.map(u => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="parLevel">Par Level</Label>
+                  <Input
+                    id="parLevel" name="parLevel" type="number" step="0.01" placeholder="0"
+                    value={formValues.parLevel}
+                    onChange={(e) => setFormValues(p => ({ ...p, parLevel: e.target.value }))}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cost">Cost Per Unit</Label>
-                <Input 
-                  id="cost" 
-                  name="cost" 
-                  type="number" 
-                  step="0.01" 
-                  placeholder="0.00" 
-                    value={formValues.cost}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, cost: e.target.value }))}
-                  />
+                <Label htmlFor="lowStockThreshold" className="text-sm">Low Stock Alert</Label>
+                <Input
+                  id="lowStockThreshold" name="lowStockThreshold" type="number" step="0.01" placeholder="0"
+                  value={formValues.lowStockThreshold}
+                  onChange={(e) => setFormValues(p => ({ ...p, lowStockThreshold: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Numbers are entered in the unit selected above and stored in the base unit.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cost">Cost Per Base Unit</Label>
+                <Input
+                  id="cost" name="cost" type="number" step="0.01" placeholder="0.00"
+                  value={formValues.cost}
+                  onChange={(e) => setFormValues(p => ({ ...p, cost: e.target.value }))}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="supplier">Supplier</Label>
-                <Input 
-                  id="supplier" 
-                  name="supplier" 
-                  placeholder="Enter supplier name" 
-                    value={formValues.supplier}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, supplier: e.target.value }))}
-                  />
+                <Input
+                  id="supplier" name="supplier" placeholder="Enter supplier name"
+                  value={formValues.supplier}
+                  onChange={(e) => setFormValues(p => ({ ...p, supplier: e.target.value }))}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentDate" className="text-sm">Last Shipment</Label>
-                  <Input 
-                    id="lastShipmentDate" 
-                    name="lastShipmentDate" 
-                    type="date" 
+                  <Input
+                    id="lastShipmentDate" name="lastShipmentDate" type="date"
                     value={formValues.lastShipmentDate}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, lastShipmentDate: e.target.value }))}
+                    onChange={(e) => setFormValues(p => ({ ...p, lastShipmentDate: e.target.value }))}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="lastShipmentQuantity" className="text-sm">Qty Received</Label>
-                  <Input 
-                    id="lastShipmentQuantity" 
-                    name="lastShipmentQuantity" 
-                    type="number" 
-                    step="0.01" 
-                    placeholder="0" 
+                  <Input
+                    id="lastShipmentQuantity" name="lastShipmentQuantity" type="number" step="0.01" placeholder="0"
                     value={formValues.lastShipmentQuantity}
-                    onChange={(e) => setFormValues(prev => ({ ...prev, lastShipmentQuantity: e.target.value }))}
+                    onChange={(e) => setFormValues(p => ({ ...p, lastShipmentQuantity: e.target.value }))}
                   />
                 </div>
               </div>
