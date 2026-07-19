@@ -37,7 +37,7 @@ export const useInventory = () => {
 
       // Fetch inventory with quantities and vendor info
       // RLS policies now handle team-based access, so we don't filter by user_id
-      const { data: inventoryData, error: inventoryError } = await supabase
+      const { data: inventoryData, error: inventoryError } = await (supabase
         .from('inventory_info')
         .select(`
           id,
@@ -45,6 +45,9 @@ export const useInventory = () => {
           inventory_name,
           category,
           unit,
+          base_unit,
+          default_display_unit,
+          pack_units,
           cost_per_unit,
           last_shipment_date,
           last_shipment_quantity,
@@ -58,7 +61,7 @@ export const useInventory = () => {
             inventory_maximum,
             inventory_minimum
           )
-        `);
+        ` as any) as any);
 
       if (inventoryError) throw inventoryError;
 
@@ -69,6 +72,9 @@ export const useInventory = () => {
         inventory_name: item.inventory_name,
         category: item.category,
         unit: item.unit,
+        base_unit: item.base_unit ?? item.unit ?? null,
+        default_display_unit: item.default_display_unit ?? item.unit ?? null,
+        pack_units: normalizePackUnits(item.pack_units),
         cost_per_unit: item.cost_per_unit,
         last_shipment_date: item.last_shipment_date,
         last_shipment_quantity: item.last_shipment_quantity,
