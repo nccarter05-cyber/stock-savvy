@@ -8,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertTriangle, Search } from 'lucide-react';
+import { AlertTriangle, Search, Plus, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useInventory } from '@/hooks/useInventory';
 import { useState, useMemo } from 'react';
 
