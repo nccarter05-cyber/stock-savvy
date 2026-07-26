@@ -15,10 +15,15 @@ import { useInventory } from '@/hooks/useInventory';
 import { useState, useMemo } from 'react';
 
 const LowStock = () => {
-  const { getLowStockItems, isLoading } = useInventory();
+  const { getLowStockItems, isLoading, updateQuantity } = useInventory();
   const lowStockItems = getLowStockItems();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+
+  const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
+  const setAdjustAmount = (itemId: string, value: number) =>
+    setAdjustAmounts((prev) => ({ ...prev, [itemId]: value }));
 
   const categories = useMemo(() => {
     const set = new Set<string>();
