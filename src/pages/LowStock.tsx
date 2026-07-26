@@ -8,16 +8,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertTriangle, Search } from 'lucide-react';
+import { AlertTriangle, Search, Plus, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useInventory } from '@/hooks/useInventory';
 import { useState, useMemo } from 'react';
 
 const LowStock = () => {
-  const { getLowStockItems, isLoading } = useInventory();
+  const { getLowStockItems, isLoading, updateQuantity } = useInventory();
   const lowStockItems = getLowStockItems();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [adjustAmounts, setAdjustAmounts] = useState<Record<string, number>>({});
+
+  const getAdjustAmount = (itemId: string) => adjustAmounts[itemId] ?? 1;
+  const setAdjustAmount = (itemId: string, value: number) =>
+    setAdjustAmounts((prev) => ({ ...prev, [itemId]: value }));
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -143,6 +149,31 @@ const LowStock = () => {
                       <span className="font-semibold text-primary">
                         {needToOrder} {item.unit || ''}
                       </span>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 pt-3 border-t" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => updateQuantity({ itemId: item.id, delta: -getAdjustAmount(item.id) })}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={getAdjustAmount(item.id)}
+                        onChange={(e) => setAdjustAmount(item.id, parseInt(e.target.value) || 1)}
+                        className="w-14 h-9 text-center"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => updateQuantity({ itemId: item.id, delta: getAdjustAmount(item.id) })}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
