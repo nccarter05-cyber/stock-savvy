@@ -150,6 +150,31 @@ const LowStock = () => {
                         {needToOrder} {item.unit || ''}
                       </span>
                     </div>
+                    <div className="flex items-center justify-end gap-1 pt-3 border-t" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => updateQuantity({ itemId: item.id, delta: -getAdjustAmount(item.id) })}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={getAdjustAmount(item.id)}
+                        onChange={(e) => setAdjustAmount(item.id, parseInt(e.target.value) || 1)}
+                        className="w-14 h-9 text-center"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => updateQuantity({ itemId: item.id, delta: getAdjustAmount(item.id) })}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );
